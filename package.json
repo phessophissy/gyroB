@@ -8,7 +8,12 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "clarinet test",
-    "play": "node scripts/play-game.js"
+    "play": "node scripts/play-game.js play",
+    "wallets:generate": "node scripts/play-game.js generate --count 50",
+    "wallets:play:dry": "node scripts/play-game.js play --wallets generated/mainnet-wallets.json --count 10 --spin random --dry-run",
+    "wallets:play": "node scripts/play-game.js play --wallets generated/mainnet-wallets.json --count 10 --spin random",
+    "wallets:fund:dry": "node scripts/fund-wallets.js --wallets generated/mainnet-wallets.json --count 50 --dry-run",
+    "wallets:fund": "node scripts/fund-wallets.js --wallets generated/mainnet-wallets.json --count 50"
   },
   "keywords": [
     "stacks",

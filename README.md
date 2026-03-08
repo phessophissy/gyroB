@@ -83,6 +83,92 @@ npm run build
 
 The production build will be output to the `dist/` folder.
 
+## 🔐 Mainnet Wallet Automation
+
+This repo includes `scripts/play-game.js` for generating wallets and submitting `play` calls on mainnet.
+
+### Generate 50 mainnet wallets
+
+```bash
+npm run wallets:generate
+```
+
+Outputs:
+- `generated/mainnet-wallets.json`
+- `generated/mainnet-wallets.csv`
+
+Both files include private keys and mnemonics. They are ignored by git and should be handled as secrets.
+
+### Dry-run batch game calls
+
+```bash
+npm run wallets:play:dry
+```
+
+This shows which wallets would call:
+- Contract: `SP2KYZRNME33Y39GP3RKC90DQJ45EF1N0NZNVRE09.spinning-board`
+- Function: `play(spin)`
+- Entry fee: `1000` microSTX (`0.001 STX`)
+
+To include live balance checks in dry-run mode:
+
+```bash
+node scripts/play-game.js play --wallets generated/mainnet-wallets.json --count 10 --spin random --dry-run --check-balance
+```
+
+### Broadcast live mainnet calls
+
+```bash
+npm run wallets:play
+```
+
+You can also run the script directly for custom settings:
+
+```bash
+node scripts/play-game.js play \
+  --wallets generated/mainnet-wallets.json \
+  --count 50 \
+  --start-index 0 \
+  --spin random \
+  --fee 3000 \
+  --delay-ms 1200
+```
+
+### Fund the 50 wallets from your funder account
+
+Create `.env` from `.env.example` and set your real mnemonic:
+
+```bash
+cp .env.example .env
+```
+
+Set this value in `.env`:
+- `FUNDER_MNEMONIC="your real 12/24 words ..."`
+
+The funding script verifies the mnemonic resolves to this exact address before sending:
+- `SP1QPNQB6R3EFMTQYGHG9J7N03S3K52ARSE1VEVX4`
+
+If your environment has TLS issues with the default Stacks API host, set:
+- `STACKS_API_URL="https://api.mainnet.hiro.so"`
+
+Dry-run funding plan (no broadcast):
+
+```bash
+npm run wallets:fund:dry -- --amount-stx 0.02
+```
+
+Live funding broadcast:
+
+```bash
+npm run wallets:fund -- --amount-stx 0.02
+```
+
+You can also use microSTX directly:
+
+```bash
+node scripts/fund-wallets.js --amount-ustx 20000 --count 50
+```
+
 ## 🧪 Testnet Deployment
 
 To deploy and test on Stacks Testnet before going to mainnet:

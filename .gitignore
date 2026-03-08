@@ -8,7 +8,9 @@ dist/
 
 # Sensitive files - NEVER commit these!
 wallets.json
-scripts/
+generated/
+generated/*.json
+generated/*.csv
 
 # OS files
 .DS_Store
