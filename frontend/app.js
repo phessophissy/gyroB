@@ -1,339 +1,425 @@
 /**
  * Spinning Board Game - Frontend Application
- * Uses @stacks/connect for wallet connection and transaction signing
- * 
- * Stacks Mainnet
+ * Uses @stacks/connect for wallet connection and transaction signing.
  */
 
 import {
+  AppConfig,
+  UserSession,
   openContractCall,
   showConnect,
-  AppConfig,
-  UserSession
-} from "@stacks/connect";
+} from '@stacks/connect';
 import {
+  PostConditionMode,
+  cvToHex,
+  standardPrincipalCV,
   uintCV,
-  PostConditionMode
-} from "@stacks/transactions";
-import { StacksMainnet } from "@stacks/network";
+} from '@stacks/transactions';
+import { StacksMainnet } from '@stacks/network';
 
-// ============================================
-// Configuration
-// ============================================
-
-const CONTRACT_ADDRESS = "SP2KYZRNME33Y39GP3RKC90DQJ45EF1N0NZNVRE09";
-const CONTRACT_NAME = "spinning-board";
+const CONTRACT_ADDRESS = 'SP2KYZRNME33Y39GP3RKC90DQJ45EF1N0NZNVRE09';
+const CONTRACT_NAME = 'spinning-board';
 const NETWORK = new StacksMainnet();
-const API_URL = "https://stacks-node-api.mainnet.stacks.co";
+const API_URL = 'https://stacks-node-api.mainnet.stacks.co';
+const ACTIVITY_STORAGE_KEY = 'spinningb-session-activity';
+const MAX_ACTIVITY_ITEMS = 6;
+const ROUND_CAPACITY = 10;
 
-// ============================================
-// State
-// ============================================
+const state = {
+  selectedSpin: null,
+  connectedAddress: null,
+  hasPlayed: false,
+  isRefreshing: false,
+  activity: loadStoredActivity(),
+};
 
-let selectedSpin = null;
-let connectedAddress = null;
-
-// Initialize Stacks UserSession
-const appConfig = new AppConfig(["store_write"]);
+const appConfig = new AppConfig(['store_write']);
 const userSession = new UserSession({ appConfig });
 
-// ============================================
-// DOM Elements
-// ============================================
+const connectBtn = document.getElementById('connectBtn');
+const refreshStatsBtn = document.getElementById('refreshStatsBtn');
+const playBtn = document.getElementById('playBtn');
+const playBtnText = document.getElementById('playBtnText');
+const statusMessage = document.getElementById('statusMessage');
+const txHistory = document.getElementById('txHistory');
+const txLink = document.getElementById('txLink');
+const walletInfo = document.getElementById('walletInfo');
+const walletStatusPill = document.getElementById('walletStatusPill');
+const walletAddress = document.getElementById('walletAddress');
+const connectionState = document.getElementById('connectionState');
+const selectedSpinValue = document.getElementById('selectedSpinValue');
+const selectionHint = document.getElementById('selectionHint');
+const selectionSummary = document.getElementById('selectionSummary');
+const lastUpdated = document.getElementById('lastUpdated');
+const activityList = document.getElementById('activityList');
+const roundCapacity = document.getElementById('roundCapacity');
+const potSignal = document.getElementById('potSignal');
+const currentRoundEl = document.getElementById('currentRound');
+const playerCountEl = document.getElementById('playerCount');
+const totalPotEl = document.getElementById('totalPot');
+const highestSpinEl = document.getElementById('highestSpin');
+const spinButtons = [...document.querySelectorAll('.spin-btn')];
 
-const connectBtn = document.getElementById("connectBtn");
-const playBtn = document.getElementById("playBtn");
-const playBtnText = document.getElementById("playBtnText");
-const statusMessage = document.getElementById("statusMessage");
-const txHistory = document.getElementById("txHistory");
-const txLink = document.getElementById("txLink");
-const spinButtons = document.querySelectorAll(".spin-btn");
-const walletInfo = document.getElementById("walletInfo");
-const walletAddress = document.getElementById("walletAddress");
-
-// Stat elements
-const currentRoundEl = document.getElementById("currentRound");
-const playerCountEl = document.getElementById("playerCount");
-const totalPotEl = document.getElementById("totalPot");
-const highestSpinEl = document.getElementById("highestSpin");
-
-// ============================================
-// Initialize App
-// ============================================
-
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener('DOMContentLoaded', () => {
   initializeApp();
 });
 
 function initializeApp() {
-  // Setup event listeners
-  connectBtn.addEventListener("click", connectWallet);
-  playBtn.addEventListener("click", playGame);
+  connectBtn.addEventListener('click', handleWalletAction);
+  refreshStatsBtn.addEventListener('click', () => {
+    loadGameStats({ reason: 'manual', withStatus: true });
+  });
+  playBtn.addEventListener('click', playGame);
 
-  // Spin button selection
   spinButtons.forEach((btn) => {
-    btn.addEventListener("click", () => selectSpin(btn));
+    btn.addEventListener('click', () => selectSpin(btn));
   });
 
-  // Check if wallet already connected
   if (userSession.isUserSignedIn()) {
     const userData = userSession.loadUserData();
-    connectedAddress = userData.profile.stxAddress.mainnet;
-    updateUIForConnectedWallet();
-    checkIfAlreadyPlayed();
+    state.connectedAddress = userData.profile.stxAddress.mainnet;
+    state.hasPlayed = false;
+    addActivity('Wallet session restored.');
   }
 
-  // Load game stats
-  loadGameStats();
+  renderActivity();
+  syncWalletUI();
+  syncSelectionUI();
+  loadGameStats({ reason: 'initial' });
+  window.setInterval(() => loadGameStats({ reason: 'poll' }), 30000);
 
-  // Refresh stats every 30 seconds
-  setInterval(loadGameStats, 30000);
+  if (state.connectedAddress) {
+    checkIfAlreadyPlayed();
+  }
 }
 
-// ============================================
-// Wallet Connection
-// ============================================
+function handleWalletAction() {
+  if (state.connectedAddress) {
+    disconnectWallet();
+    return;
+  }
+
+  connectWallet();
+}
 
 function connectWallet() {
   showConnect({
     appDetails: {
-      name: "SpinningB - Maroon Stripe",
-      icon: "https://stacks.co/favicon.ico",
+      name: 'SpinningB Signal Room',
+      icon: 'https://stacks.co/favicon.ico',
     },
+    userSession,
     onFinish: () => {
       const userData = userSession.loadUserData();
-      connectedAddress = userData.profile.stxAddress.mainnet;
-      updateUIForConnectedWallet();
+      state.connectedAddress = userData.profile.stxAddress.mainnet;
+      state.hasPlayed = false;
+      syncWalletUI();
+      addActivity('Wallet connected.');
+      showStatus('Wallet connected. Choose a spin to prepare your move.', 'success');
       checkIfAlreadyPlayed();
     },
     onCancel: () => {
-      showStatus("Wallet connection cancelled", "info");
+      showStatus('Wallet connection cancelled.', 'info');
+      addActivity('Wallet connection was cancelled.');
     },
-    userSession,
   });
 }
 
 function disconnectWallet() {
   userSession.signUserOut();
-  connectedAddress = null;
-  updateUIForDisconnectedWallet();
+  state.connectedAddress = null;
+  state.hasPlayed = false;
+  syncWalletUI();
+  showStatus('Wallet disconnected. You can reconnect anytime.', 'info');
+  addActivity('Wallet disconnected.');
 }
 
-function updateUIForConnectedWallet() {
-  // Update connect button
-  connectBtn.textContent = "Disconnect";
-  connectBtn.classList.add("connected");
-  connectBtn.onclick = disconnectWallet;
-
-  // Show wallet info
-  if (walletInfo) {
-    walletInfo.classList.remove("hidden");
-    if (walletAddress) {
-      walletAddress.textContent = `${connectedAddress.slice(0, 8)}...${connectedAddress.slice(-4)}`;
-    }
-  }
-
-  // Update play button
-  if (selectedSpin) {
-    playBtn.disabled = false;
-    playBtnText.textContent = `Spin ${selectedSpin} - Pay 0.001 STX`;
+function syncWalletUI() {
+  if (state.connectedAddress) {
+    connectBtn.textContent = 'Disconnect Wallet';
+    walletInfo.classList.remove('hidden');
+    walletStatusPill.textContent = state.hasPlayed ? 'Round locked' : 'Wallet live';
+    walletAddress.textContent = formatAddress(state.connectedAddress);
+    connectionState.textContent = `Connected as ${formatAddress(state.connectedAddress)}`;
   } else {
-    playBtnText.textContent = "Select a Number";
-  }
-}
-
-function updateUIForDisconnectedWallet() {
-  // Update connect button
-  connectBtn.textContent = "Connect Wallet";
-  connectBtn.classList.remove("connected");
-  connectBtn.onclick = connectWallet;
-
-  // Hide wallet info
-  if (walletInfo) {
-    walletInfo.classList.add("hidden");
+    connectBtn.textContent = 'Connect Wallet';
+    walletInfo.classList.add('hidden');
+    connectionState.textContent = 'Wallet not connected';
   }
 
-  // Update play button
-  playBtn.disabled = true;
-  playBtnText.textContent = "Connect Wallet to Play";
+  syncPlayButton();
 }
 
-// ============================================
-// Game Stats
-// ============================================
+function syncSelectionUI() {
+  spinButtons.forEach((btn) => {
+    const isSelected = Number(btn.dataset.spin) === state.selectedSpin;
+    btn.classList.toggle('selected', isSelected);
+    btn.setAttribute('aria-pressed', String(isSelected));
+  });
 
-async function loadGameStats() {
+  if (state.selectedSpin) {
+    selectedSpinValue.textContent = `Spin ${state.selectedSpin}`;
+    selectionHint.textContent = state.connectedAddress
+      ? 'Ready to sign on mainnet as soon as you confirm the transaction.'
+      : 'Connect a wallet to turn this selection into a signed move.';
+    selectionSummary.textContent = `Spin ${state.selectedSpin} prepared`;
+  } else {
+    selectedSpinValue.textContent = 'No spin selected';
+    selectionHint.textContent = 'Choose a number to prepare your transaction.';
+    selectionSummary.textContent = 'No spin prepared';
+  }
+
+  syncPlayButton();
+}
+
+function syncPlayButton() {
+  playBtn.classList.remove('loading');
+
+  if (state.hasPlayed) {
+    playBtn.disabled = true;
+    playBtnText.textContent = 'Already Played This Round';
+    if (state.connectedAddress) {
+      walletStatusPill.textContent = 'Round locked';
+    }
+    return;
+  }
+
+  if (!state.connectedAddress) {
+    playBtn.disabled = true;
+    playBtnText.textContent = 'Connect Wallet to Play';
+    return;
+  }
+
+  if (!state.selectedSpin) {
+    playBtn.disabled = true;
+    playBtnText.textContent = 'Select a Number';
+    return;
+  }
+
+  playBtn.disabled = false;
+  playBtnText.textContent = `Submit Spin ${state.selectedSpin}`;
+}
+
+async function loadGameStats({ reason = 'auto', withStatus = false } = {}) {
+  if (state.isRefreshing) return;
+
+  state.isRefreshing = true;
+  refreshStatsBtn.disabled = true;
+  refreshStatsBtn.textContent = reason === 'manual' ? 'Refreshing...' : 'Refresh stats';
+
   try {
     const [round, players, pot, highest] = await Promise.all([
-      callReadOnly("get-current-round"),
-      callReadOnly("get-player-count"),
-      callReadOnly("get-total-pot"),
-      callReadOnly("get-highest-spin"),
+      callReadOnly('get-current-round'),
+      callReadOnly('get-player-count'),
+      callReadOnly('get-total-pot'),
+      callReadOnly('get-highest-spin'),
     ]);
 
     currentRoundEl.textContent = round;
-    playerCountEl.textContent = `${players}/10`;
-    totalPotEl.textContent = `${(pot / 1000000).toFixed(4)} STX`;
-    highestSpinEl.textContent = highest > 0 ? highest : "-";
+    playerCountEl.textContent = `${players}/${ROUND_CAPACITY}`;
+    totalPotEl.textContent = `${(pot / 1_000_000).toFixed(4)} STX`;
+    highestSpinEl.textContent = highest > 0 ? highest : '-';
+
+    const seatsLeft = Math.max(ROUND_CAPACITY - players, 0);
+    roundCapacity.textContent = seatsLeft === 0 ? 'Round is full' : `${seatsLeft} seat${seatsLeft === 1 ? '' : 's'} open`;
+    potSignal.textContent =
+      pot > 0
+        ? `${players} player${players === 1 ? '' : 's'} currently in the round`
+        : 'No entries yet for this round';
+    lastUpdated.textContent = formatTimestamp(new Date());
+
+    if (withStatus) {
+      showStatus('Round stats refreshed from mainnet.', 'info');
+      addActivity('Stats manually refreshed.');
+    }
   } catch (error) {
-    console.error("Failed to load game stats:", error);
+    console.error('Failed to load game stats:', error);
+    if (withStatus) {
+      showStatus('Could not refresh stats from mainnet right now.', 'error');
+    }
+    addActivity('Stats refresh failed.');
+  } finally {
+    state.isRefreshing = false;
+    refreshStatsBtn.disabled = false;
+    refreshStatsBtn.textContent = 'Refresh stats';
   }
 }
 
-async function callReadOnly(functionName, args = []) {
+async function callReadOnly(functionName, args = [], sender = CONTRACT_ADDRESS) {
   const url = `${API_URL}/v2/contracts/call-read/${CONTRACT_ADDRESS}/${CONTRACT_NAME}/${functionName}`;
 
   const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      sender: CONTRACT_ADDRESS,
+      sender,
       arguments: args,
     }),
   });
 
+  if (!response.ok) {
+    throw new Error(`Mainnet request failed with status ${response.status}`);
+  }
+
   const data = await response.json();
 
   if (!data.okay) {
-    throw new Error(data.cause || "Contract call failed");
+    throw new Error(data.cause || 'Contract call failed');
   }
 
   return parseClarityValue(data.result);
 }
 
 function parseClarityValue(hex) {
-  // Simple parser for uint values
-  if (hex.startsWith("0x01")) {
-    const valueHex = hex.slice(4);
-    return parseInt(valueHex, 16);
+  if (hex.startsWith('0x01')) {
+    return Number.parseInt(hex.slice(4), 16);
   }
-  if (hex === "0x03") return true;
-  if (hex === "0x04") return false;
+
+  if (hex === '0x03') return true;
+  if (hex === '0x04') return false;
   return hex;
 }
 
-// ============================================
-// Game Actions
-// ============================================
-
 function selectSpin(btn) {
-  spinButtons.forEach((b) => b.classList.remove("selected"));
-  btn.classList.add("selected");
-  selectedSpin = parseInt(btn.dataset.spin);
-
-  if (connectedAddress) {
-    playBtn.disabled = false;
-    playBtnText.textContent = `Spin ${selectedSpin} - Pay 0.001 STX`;
-  }
+  state.selectedSpin = Number.parseInt(btn.dataset.spin, 10);
+  syncSelectionUI();
+  addActivity(`Prepared spin ${state.selectedSpin}.`);
 }
 
 async function checkIfAlreadyPlayed() {
-  if (!connectedAddress) return;
+  if (!state.connectedAddress) return;
 
   try {
-    // Encode principal for API call
-    const url = `${API_URL}/v2/contracts/call-read/${CONTRACT_ADDRESS}/${CONTRACT_NAME}/has-player-played`;
+    const hasPlayed = await callReadOnly(
+      'has-player-played',
+      [cvToHex(standardPrincipalCV(state.connectedAddress))],
+      state.connectedAddress
+    );
 
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        sender: connectedAddress,
-        arguments: [`0x0516${stringToHex(connectedAddress)}`],
-      }),
-    });
+    state.hasPlayed = Boolean(hasPlayed);
+    syncWalletUI();
 
-    const data = await response.json();
-    const hasPlayed = data.result === "0x03";
-
-    if (hasPlayed) {
-      showStatus("You already played this round. Wait for it to complete!", "info");
-      playBtn.disabled = true;
-      playBtnText.textContent = "Already Played This Round";
+    if (state.hasPlayed) {
+      showStatus('This wallet already played the current round. Wait for the next round to open.', 'info');
+      addActivity('Detected an existing entry for this wallet in the current round.');
     }
   } catch (error) {
-    console.error("Failed to check play status:", error);
+    console.error('Failed to check play status:', error);
   }
-}
-
-function stringToHex(str) {
-  let hex = "";
-  for (let i = 0; i < str.length; i++) {
-    hex += str.charCodeAt(i).toString(16).padStart(2, "0");
-  }
-  return hex;
 }
 
 async function playGame() {
-  if (!connectedAddress || !selectedSpin) {
-    showStatus("Please connect wallet and select a spin number", "error");
+  if (!state.connectedAddress || !state.selectedSpin) {
+    showStatus('Connect a wallet and select a spin number first.', 'error');
     return;
   }
 
-  // Disable button and show loading
   playBtn.disabled = true;
-  playBtnText.textContent = "Submitting Transaction...";
-  playBtn.classList.add("loading");
+  playBtn.classList.add('loading');
+  playBtnText.textContent = 'Submitting Transaction...';
   hideStatus();
 
   try {
-    // Use Stacks Connect for transaction signing
     await openContractCall({
       contractAddress: CONTRACT_ADDRESS,
       contractName: CONTRACT_NAME,
-      functionName: "play",
-      functionArgs: [uintCV(selectedSpin)],
+      functionName: 'play',
+      functionArgs: [uintCV(state.selectedSpin)],
       network: NETWORK,
       postConditionMode: PostConditionMode.Allow,
-      onFinish: (data) => {
-        console.log("Transaction submitted:", data);
-        showStatus(`Transaction submitted! Spin: ${selectedSpin}`, "success");
+      onFinish: ({ txId }) => {
+        state.hasPlayed = true;
+        syncWalletUI();
 
-        txHistory.classList.remove("hidden");
-        txLink.href = `https://explorer.stacks.co/txid/${data.txId}?chain=mainnet`;
-        txLink.textContent = `${data.txId.slice(0, 20)}...`;
+        txHistory.classList.remove('hidden');
+        txLink.href = `https://explorer.stacks.co/txid/${txId}?chain=mainnet`;
+        txLink.textContent = `${txId.slice(0, 20)}...`;
 
-        playBtn.classList.remove("loading");
-        playBtnText.textContent = "Transaction Pending...";
+        showStatus(`Transaction submitted for spin ${state.selectedSpin}.`, 'success');
+        addActivity(`Submitted spin ${state.selectedSpin}. Transaction pending on mainnet.`);
 
-        setTimeout(loadGameStats, 5000);
-        setTimeout(() => {
+        playBtn.classList.remove('loading');
+        playBtnText.textContent = 'Transaction Pending...';
+
+        window.setTimeout(() => loadGameStats({ reason: 'post-submit' }), 5000);
+        window.setTimeout(() => {
           checkIfAlreadyPlayed();
-          loadGameStats();
+          loadGameStats({ reason: 'post-submit' });
         }, 15000);
       },
       onCancel: () => {
-        showStatus("Transaction cancelled", "info");
+        showStatus('Transaction cancelled before signing.', 'info');
+        addActivity('Transaction signing was cancelled.');
         resetPlayButton();
       },
     });
   } catch (error) {
-    console.error("Transaction error:", error);
-    showStatus(`Error: ${error.message}`, "error");
+    console.error('Transaction error:', error);
+    showStatus(`Transaction error: ${error.message}`, 'error');
+    addActivity('Transaction submission failed before broadcast.');
     resetPlayButton();
   }
 }
 
 function resetPlayButton() {
-  playBtn.classList.remove("loading");
-  playBtn.disabled = false;
-  if (selectedSpin) {
-    playBtnText.textContent = `Spin ${selectedSpin} - Pay 0.001 STX`;
-  } else {
-    playBtnText.textContent = "Select a Number";
-  }
+  playBtn.classList.remove('loading');
+  syncPlayButton();
 }
 
-// ============================================
-// UI Helpers
-// ============================================
-
-function showStatus(message, type = "info") {
+function showStatus(message, type = 'info') {
   statusMessage.textContent = message;
   statusMessage.className = `status-message ${type}`;
-  statusMessage.classList.remove("hidden");
+  statusMessage.classList.remove('hidden');
 }
 
 function hideStatus() {
-  statusMessage.classList.add("hidden");
+  statusMessage.classList.add('hidden');
+}
+
+function addActivity(message) {
+  const entry = {
+    id: `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+    message,
+    at: new Date().toISOString(),
+  };
+
+  state.activity = [entry, ...state.activity].slice(0, MAX_ACTIVITY_ITEMS);
+  localStorage.setItem(ACTIVITY_STORAGE_KEY, JSON.stringify(state.activity));
+  renderActivity();
+}
+
+function renderActivity() {
+  if (!state.activity.length) {
+    activityList.innerHTML = '<li class="activity-empty">No local activity yet. Connect a wallet or refresh stats.</li>';
+    return;
+  }
+
+  activityList.innerHTML = '';
+
+  state.activity.forEach((entry) => {
+    const item = document.createElement('li');
+    item.textContent = `${formatTimestamp(entry.at)} · ${entry.message}`;
+    activityList.appendChild(item);
+  });
+}
+
+function loadStoredActivity() {
+  try {
+    return JSON.parse(localStorage.getItem(ACTIVITY_STORAGE_KEY) || '[]');
+  } catch {
+    return [];
+  }
+}
+
+function formatAddress(address) {
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}
+
+function formatTimestamp(value) {
+  return new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    month: 'short',
+    day: 'numeric',
+  }).format(new Date(value));
 }
