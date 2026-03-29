@@ -31,6 +31,7 @@ const state = {
   hasPlayed: false,
   isRefreshing: false,
   activity: loadStoredActivity(),
+  statusTimer: null,
 };
 
 const appConfig = new AppConfig(['store_write']);
@@ -367,12 +368,27 @@ function resetPlayButton() {
 }
 
 function showStatus(message, type = 'info') {
+  if (state.statusTimer) {
+    window.clearTimeout(state.statusTimer);
+  }
+
   statusMessage.textContent = message;
   statusMessage.className = `status-message ${type}`;
   statusMessage.classList.remove('hidden');
+
+  if (type !== 'error') {
+    state.statusTimer = window.setTimeout(() => {
+      hideStatus();
+    }, 7000);
+  }
 }
 
 function hideStatus() {
+  if (state.statusTimer) {
+    window.clearTimeout(state.statusTimer);
+    state.statusTimer = null;
+  }
+
   statusMessage.classList.add('hidden');
 }
 
