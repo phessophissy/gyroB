@@ -23,7 +23,7 @@ A decentralized spinning board game on the Stacks blockchain (Bitcoin L2).
 
 - 🔐 Decentralized & trustless gameplay
 - 💰 Automatic prize distribution via smart contract
-- 🔩 Sleek metallic chrome-themed UI
+- 🔩 Signal-room inspired mainnet dashboard UI
 - 📱 Mobile responsive design
 - 🔗 Native Stacks Connect wallet integration
 - ⚡ Built on Stacks (Bitcoin L2)
@@ -82,6 +82,15 @@ npm run dev
 ```
 
 Then open http://localhost:5173
+
+## 🖥️ Frontend Experience
+
+The frontend now ships as a live round dashboard with:
+
+- a command-center style hero that surfaces wallet and round readiness
+- manual stat refresh controls alongside the normal polling cycle
+- clearer selection and submission states for mainnet play
+- a local session activity feed for wallet, refresh, and transaction events
 
 ### 4. Build for Production
 
