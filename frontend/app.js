@@ -22,6 +22,7 @@ const CONTRACT_NAME = 'spinning-board';
 const NETWORK = new StacksMainnet();
 const API_URL = 'https://stacks-node-api.mainnet.stacks.co';
 const ACTIVITY_STORAGE_KEY = 'spinningb-session-activity';
+const LAST_TX_STORAGE_KEY = 'spinningb-last-tx';
 const MAX_ACTIVITY_ITEMS = 6;
 const ROUND_CAPACITY = 10;
 
@@ -31,6 +32,7 @@ const state = {
   hasPlayed: false,
   isRefreshing: false,
   activity: loadStoredActivity(),
+  lastTransaction: loadStoredTransaction(),
   statusTimer: null,
 };
 
@@ -85,6 +87,7 @@ function initializeApp() {
   }
 
   renderActivity();
+  renderLastTransaction();
   syncWalletUI();
   syncSelectionUI();
   loadGameStats({ reason: 'initial' });
@@ -370,10 +373,8 @@ async function playGame() {
       onFinish: ({ txId }) => {
         state.hasPlayed = true;
         syncWalletUI();
-
-        txHistory.classList.remove('hidden');
-        txLink.href = `https://explorer.stacks.co/txid/${txId}?chain=mainnet`;
-        txLink.textContent = `${txId.slice(0, 20)}...`;
+        persistLastTransaction(txId);
+        renderLastTransaction();
 
         showStatus(`Transaction submitted for spin ${state.selectedSpin}.`, 'success');
         addActivity(`Submitted spin ${state.selectedSpin}. Transaction pending on mainnet.`);
@@ -458,12 +459,36 @@ function renderActivity() {
   });
 }
 
+function renderLastTransaction() {
+  if (!state.lastTransaction) {
+    txHistory.classList.add('hidden');
+    return;
+  }
+
+  txHistory.classList.remove('hidden');
+  txLink.href = `https://explorer.stacks.co/txid/${state.lastTransaction}?chain=mainnet`;
+  txLink.textContent = `${state.lastTransaction.slice(0, 20)}...`;
+}
+
 function loadStoredActivity() {
   try {
     return JSON.parse(localStorage.getItem(ACTIVITY_STORAGE_KEY) || '[]');
   } catch {
     return [];
   }
+}
+
+function loadStoredTransaction() {
+  try {
+    return localStorage.getItem(LAST_TX_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function persistLastTransaction(txId) {
+  state.lastTransaction = txId;
+  localStorage.setItem(LAST_TX_STORAGE_KEY, txId);
 }
 
 function formatAddress(address) {
