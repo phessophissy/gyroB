@@ -47,6 +47,12 @@ a {
   color: inherit;
 }
 
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--warning);
+  outline-offset: 3px;
+}
+
 button,
 input,
 textarea,
@@ -479,6 +485,13 @@ select {
   box-shadow: 0 16px 34px rgba(255, 138, 61, 0.28);
 }
 
+.btn-connect.connected {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
 .btn-connect {
   padding: 13px 18px;
   font-weight: 700;
@@ -633,6 +646,17 @@ select {
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
