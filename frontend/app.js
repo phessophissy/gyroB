@@ -673,6 +673,14 @@ function applyTheme() {
   themeToggleBtn.textContent = state.theme === 'sunrise' ? 'Switch to nebula' : 'Switch theme';
 }
 
+function setActivityFilter(nextFilter) {
+  state.activityFilter = nextFilter;
+  activityFilterButtons.forEach((button) => {
+    button.classList.toggle('is-active', button.dataset.activityFilter === nextFilter);
+  });
+  renderActivity();
+}
+
 function formatStx(valueMicroStx) {
   return `${(Number(valueMicroStx) / 1_000_000).toFixed(4)} STX`;
 }
