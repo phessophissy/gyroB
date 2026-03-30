@@ -110,6 +110,10 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initializeApp() {
+  const storedPreferences = loadStoredPreferences();
+  state.autoRefreshEnabled = storedPreferences.autoRefreshEnabled ?? true;
+  state.theme = storedPreferences.theme || 'nebula';
+
   connectBtn.addEventListener('click', handleWalletAction);
   refreshStatsBtn.addEventListener('click', () => {
     loadGameStats({ reason: 'manual', withStatus: true });
