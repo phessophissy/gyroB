@@ -551,6 +551,14 @@ function persistLastTransaction(txId) {
   localStorage.setItem(LAST_TX_STORAGE_KEY, txId);
 }
 
+function formatStx(valueMicroStx) {
+  return `${(Number(valueMicroStx) / 1_000_000).toFixed(4)} STX`;
+}
+
+function formatMicroStxToCount(valueMicroStx) {
+  return Number(valueMicroStx) / 1_000_000;
+}
+
 function formatAddress(address) {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
