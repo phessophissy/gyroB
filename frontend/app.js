@@ -587,6 +587,19 @@ function handleSpinShortcut(event) {
     return;
   }
 
+  if (event.key.toLowerCase() === 'r') {
+    loadGameStats({ reason: 'manual', withStatus: true });
+    return;
+  }
+
+  if (event.key.toLowerCase() === 't') {
+    state.theme = state.theme === 'sunrise' ? 'nebula' : 'sunrise';
+    applyTheme();
+    savePreferences();
+    addActivity(`Theme switched to ${state.theme}.`);
+    return;
+  }
+
   const spin = shortcutMap[event.key];
   if (!spin) return;
 
