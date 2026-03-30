@@ -350,6 +350,16 @@ function renderRoundPulse() {
     pot > 0 ? `${players} player${players === 1 ? '' : 's'} in the pot, current top spin ${highest || '-'}.` : 'No paid entries have landed in this round yet.';
 }
 
+function renderRoundProgress() {
+  const ratio = Math.min(Math.max(state.statsSnapshot.players / ROUND_CAPACITY, 0), 1);
+  roundProgressFill.style.width = `${(ratio * 100).toFixed(2)}%`;
+  roundProgressFill.parentElement?.setAttribute('aria-valuenow', String(state.statsSnapshot.players));
+  roundProgressLabel.textContent =
+    state.statsSnapshot.players === 0
+      ? 'Round has not started yet'
+      : `${state.statsSnapshot.players} of ${ROUND_CAPACITY} seats filled`;
+}
+
 function renderRoundStrategy() {
   const { players, highest } = state.statsSnapshot;
   roundTempo.textContent = players >= 8 ? 'Late-stage round, expect sharper closing choices' : players >= 4 ? 'Mid-round tempo with room to reposition' : 'Early round with plenty of board space';
