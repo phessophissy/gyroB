@@ -399,7 +399,7 @@ select {
 
 .stats-band {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 16px;
 }
 
@@ -419,7 +419,7 @@ select {
   position: absolute;
   inset: auto -15% 0;
   height: 3px;
-  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  background: linear-gradient(90deg, transparent, var(--cyan), var(--pink), transparent);
   opacity: 0.65;
 }
 
