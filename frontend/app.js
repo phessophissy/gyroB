@@ -137,6 +137,11 @@ function initializeApp() {
   spinButtons.forEach((btn) => {
     btn.addEventListener('click', () => selectSpin(btn));
   });
+  quickSpinButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      applyQuickSpin(button.dataset.quickSpin || 'random');
+    });
+  });
   activityFilterButtons.forEach((button) => {
     button.addEventListener('click', () => {
       setActivityFilter(button.dataset.activityFilter || 'all');
