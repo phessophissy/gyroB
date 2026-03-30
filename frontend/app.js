@@ -23,8 +23,10 @@ const NETWORK = new StacksMainnet();
 const API_URL = 'https://stacks-node-api.mainnet.stacks.co';
 const ACTIVITY_STORAGE_KEY = 'spinningb-session-activity';
 const LAST_TX_STORAGE_KEY = 'spinningb-last-tx';
+const PREFERENCES_STORAGE_KEY = 'spinningb-ui-preferences';
 const MAX_ACTIVITY_ITEMS = 6;
 const ROUND_CAPACITY = 10;
+const REFRESH_INTERVAL_MS = 30000;
 
 const state = {
   selectedSpin: null,
@@ -34,6 +36,20 @@ const state = {
   activity: loadStoredActivity(),
   lastTransaction: loadStoredTransaction(),
   statusTimer: null,
+  activityFilter: 'all',
+  lastRefreshAt: null,
+  refreshCountdownTimer: null,
+  autoRefreshTimer: null,
+  autoRefreshEnabled: true,
+  walletBalanceMicroStx: null,
+  networkTip: null,
+  theme: 'nebula',
+  statsSnapshot: {
+    round: null,
+    players: 0,
+    pot: 0,
+    highest: 0,
+  },
 };
 
 const appConfig = new AppConfig(['store_write']);
