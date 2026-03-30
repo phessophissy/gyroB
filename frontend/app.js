@@ -546,6 +546,19 @@ function selectSpin(btn) {
   addActivity(`Prepared spin ${state.selectedSpin}.`);
 }
 
+function applyQuickSpin(mode) {
+  const spin =
+    mode === 'low' ? 2
+      : mode === 'mid' ? 5
+        : mode === 'high' ? 9
+          : Math.floor(Math.random() * ROUND_CAPACITY) + 1;
+
+  const targetButton = spinButtons.find((button) => Number(button.dataset.spin) === spin);
+  if (targetButton) {
+    selectSpin(targetButton);
+  }
+}
+
 function handleSpinShortcut(event) {
   const shortcutMap = {
     1: 1,
