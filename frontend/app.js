@@ -324,6 +324,27 @@ function renderRoundStrategy() {
   splitNote.textContent = players > 1 ? 'Equal top spins split the player-side prize evenly.' : 'Single entry rounds still respect the normal split rules.';
 }
 
+function renderSelectionRead() {
+  const { highest, pot } = state.statsSnapshot;
+
+  if (!state.selectedSpin) {
+    payoutStance.textContent = 'Waiting for current pot';
+    winningRead.textContent = 'Needs chain sync';
+    return;
+  }
+
+  payoutStance.textContent = pot > 0 ? `${formatStx(Math.floor(pot / 2))} player-side prize on the line` : 'First entry sets the pot in motion';
+  if (highest === 0) {
+    winningRead.textContent = 'No spin benchmark yet in this round';
+  } else if (state.selectedSpin > highest) {
+    winningRead.textContent = 'Your prepared spin currently leads the board';
+  } else if (state.selectedSpin === highest) {
+    winningRead.textContent = 'Your prepared spin would currently tie the lead';
+  } else {
+    winningRead.textContent = `Your prepared spin trails the current high of ${highest}`;
+  }
+}
+
 async function loadGameStats({ reason = 'auto', withStatus = false } = {}) {
   if (state.isRefreshing) return;
 
