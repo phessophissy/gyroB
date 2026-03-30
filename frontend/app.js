@@ -395,6 +395,7 @@ function renderDerivedDashboard() {
   renderSeatSignals();
   renderPrizeSignals();
   renderRoundPulse();
+  renderRoundProgress();
   renderRoundStrategy();
   renderSelectionRead();
 }
