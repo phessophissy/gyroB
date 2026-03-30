@@ -473,6 +473,15 @@ async function refreshNetworkDesk() {
   }
 }
 
+async function fetchWalletBalance(address) {
+  const response = await fetch(`${API_URL}/extended/v1/address/${address}/stx`);
+  if (!response.ok) {
+    throw new Error(`Balance request failed with status ${response.status}`);
+  }
+
+  return response.json();
+}
+
 function parseClarityValue(hex) {
   if (hex.startsWith('0x01')) {
     return Number.parseInt(hex.slice(4), 16);
