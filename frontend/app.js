@@ -311,8 +311,9 @@ async function loadGameStats({ reason = 'auto', withStatus = false } = {}) {
 
     currentRoundEl.textContent = round;
     playerCountEl.textContent = `${players}/${ROUND_CAPACITY}`;
-    totalPotEl.textContent = `${(pot / 1_000_000).toFixed(4)} STX`;
+    totalPotEl.textContent = formatStx(pot);
     highestSpinEl.textContent = highest > 0 ? highest : '-';
+    state.statsSnapshot = { round, players, pot, highest };
 
     const seatsLeft = Math.max(ROUND_CAPACITY - players, 0);
     roundCapacity.textContent = seatsLeft === 0 ? 'Round is full' : `${seatsLeft} seat${seatsLeft === 1 ? '' : 's'} open`;
@@ -320,7 +321,9 @@ async function loadGameStats({ reason = 'auto', withStatus = false } = {}) {
       pot > 0
         ? `${players} player${players === 1 ? '' : 's'} currently in the round`
         : 'No entries yet for this round';
+    state.lastRefreshAt = Date.now();
     lastUpdated.textContent = formatTimestamp(new Date());
+    updateRefreshLabels();
 
     if (withStatus) {
       showStatus('Round stats refreshed from mainnet.', 'info');
