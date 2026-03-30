@@ -314,6 +314,16 @@ function renderRoundPulse() {
     pot > 0 ? `${players} player${players === 1 ? '' : 's'} in the pot, current top spin ${highest || '-'}.` : 'No paid entries have landed in this round yet.';
 }
 
+function renderRoundStrategy() {
+  const { players, highest } = state.statsSnapshot;
+  roundTempo.textContent = players >= 8 ? 'Late-stage round, expect sharper closing choices' : players >= 4 ? 'Mid-round tempo with room to reposition' : 'Early round with plenty of board space';
+  roundPressure.textContent = players >= 8 ? 'Heavy pressure' : players >= 5 ? 'Moderate pressure' : 'Light pressure';
+  conservativeSpin.textContent = highest >= 7 ? `Need ${highest} or better pressure awareness` : 'Middle-to-high spins still in play';
+  aggressiveSpin.textContent = highest >= 9 ? 'Only top-end numbers can overtake now' : 'Upper-board plays can still seize control';
+  roundStory.textContent = highest > 0 ? `Current high spin is ${highest} with ${players} seat${players === 1 ? '' : 's'} filled.` : 'No benchmark spin has been set yet.';
+  splitNote.textContent = players > 1 ? 'Equal top spins split the player-side prize evenly.' : 'Single entry rounds still respect the normal split rules.';
+}
+
 async function loadGameStats({ reason = 'auto', withStatus = false } = {}) {
   if (state.isRefreshing) return;
 
