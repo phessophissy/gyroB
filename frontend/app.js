@@ -223,10 +223,13 @@ function syncSelectionUI() {
       ? 'Ready to sign on mainnet as soon as you confirm the transaction.'
       : 'Connect a wallet to turn this selection into a signed move.';
     selectionSummary.textContent = `Spin ${state.selectedSpin} prepared`;
+    spinPosture.textContent =
+      state.selectedSpin >= 8 ? 'Aggressive upper-board play' : state.selectedSpin >= 5 ? 'Balanced middle-board play' : 'Low-board contrarian play';
   } else {
     selectedSpinValue.textContent = 'No spin selected';
     selectionHint.textContent = 'Choose a number to prepare your transaction.';
     selectionSummary.textContent = 'No spin prepared';
+    spinPosture.textContent = 'Choose a spin';
   }
 
   syncPlayButton();
