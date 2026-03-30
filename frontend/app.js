@@ -292,6 +292,7 @@ function syncPlayButton() {
 
 function updateRefreshLabels() {
   refreshModeLabel.textContent = state.autoRefreshEnabled ? 'Every 30 seconds' : 'Manual refresh only';
+  toggleRefreshBtn.textContent = state.autoRefreshEnabled ? 'Pause auto refresh' : 'Resume auto refresh';
 
   if (!state.autoRefreshEnabled || !state.lastRefreshAt) {
     nextRefreshLabel.textContent = state.lastRefreshAt ? 'Waiting for manual refresh' : 'Waiting for first refresh';
