@@ -306,6 +306,14 @@ function renderPrizeSignals() {
     state.statsSnapshot.pot > 0 ? 'Half of the current pot goes to players' : 'Prize appears after the first paid entry';
 }
 
+function renderRoundPulse() {
+  const { players, highest, pot } = state.statsSnapshot;
+  roundPulseValue.textContent =
+    players === 0 ? 'Fresh round' : players >= 8 ? 'Crowded close' : highest >= 9 ? 'High-spin heat' : 'Room still shaping';
+  roundPulseHint.textContent =
+    pot > 0 ? `${players} player${players === 1 ? '' : 's'} in the pot, current top spin ${highest || '-'}.` : 'No paid entries have landed in this round yet.';
+}
+
 async function loadGameStats({ reason = 'auto', withStatus = false } = {}) {
   if (state.isRefreshing) return;
 
