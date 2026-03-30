@@ -153,6 +153,7 @@ function initializeApp() {
     savePreferences();
     startAutoRefreshLoop();
     addActivity(state.autoRefreshEnabled ? 'Auto refresh resumed.' : 'Auto refresh paused.');
+    showStatus(state.autoRefreshEnabled ? 'Auto refresh resumed.' : 'Auto refresh paused.', 'info');
   });
   window.addEventListener('keydown', handleSpinShortcut);
 
