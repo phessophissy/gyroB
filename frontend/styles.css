@@ -86,9 +86,9 @@ select {
 
 .page-shell {
   position: relative;
-  max-width: 1240px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 28px 20px 40px;
+  padding: 32px 20px 46px;
   overflow: hidden;
 }
 
@@ -99,11 +99,11 @@ select {
 }
 
 .ambient-one {
-  background: radial-gradient(circle at 18% 14%, rgba(78, 227, 209, 0.16), transparent 22%);
+  background: radial-gradient(circle at 18% 14%, rgba(76, 241, 210, 0.16), transparent 22%);
 }
 
 .ambient-two {
-  background: radial-gradient(circle at 82% 10%, rgba(255, 138, 61, 0.14), transparent 20%);
+  background: radial-gradient(circle at 82% 10%, rgba(255, 98, 176, 0.16), transparent 20%);
 }
 
 .ambient-grid {
@@ -127,7 +127,7 @@ select {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  margin-bottom: 28px;
+  margin-bottom: 18px;
 }
 
 .brand-lockup {
@@ -147,6 +147,7 @@ select {
     rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.14);
   color: var(--text);
+  font-family: 'Space Mono', monospace;
   font-weight: 700;
   letter-spacing: 0.08em;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
@@ -160,10 +161,47 @@ select {
 }
 
 .topbar h1 {
-  font-family: 'Instrument Serif', Georgia, serif;
+  font-family: 'Fraunces', Georgia, serif;
   font-size: clamp(2rem, 4vw, 3rem);
-  font-weight: 400;
+  font-weight: 600;
   line-height: 0.95;
+}
+
+.trust-strip {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.trust-pill {
+  padding: 14px 16px;
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
+    rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 16px 34px rgba(7, 4, 28, 0.24);
+}
+
+.trust-label {
+  display: block;
+  color: var(--muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.trust-pill strong {
+  display: block;
+  margin-top: 6px;
+}
+
+.trust-pill code {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.88em;
 }
 
 .wallet-section {
