@@ -145,6 +145,12 @@ function initializeApp() {
     renderActivity();
     showStatus('Local session activity cleared.', 'info');
   });
+  toggleRefreshBtn.addEventListener('click', () => {
+    state.autoRefreshEnabled = !state.autoRefreshEnabled;
+    savePreferences();
+    startAutoRefreshLoop();
+    addActivity(state.autoRefreshEnabled ? 'Auto refresh resumed.' : 'Auto refresh paused.');
+  });
   window.addEventListener('keydown', handleSpinShortcut);
 
   if (userSession.isUserSignedIn()) {
