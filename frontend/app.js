@@ -345,6 +345,14 @@ function renderSelectionRead() {
   }
 }
 
+function renderDerivedDashboard() {
+  renderSeatSignals();
+  renderPrizeSignals();
+  renderRoundPulse();
+  renderRoundStrategy();
+  renderSelectionRead();
+}
+
 async function loadGameStats({ reason = 'auto', withStatus = false } = {}) {
   if (state.isRefreshing) return;
 
