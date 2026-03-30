@@ -123,6 +123,7 @@ function initializeApp() {
     state.theme = state.theme === 'sunrise' ? 'nebula' : 'sunrise';
     applyTheme();
     savePreferences();
+    addActivity(`Theme switched to ${state.theme}.`);
   });
   refreshStatsBtn.addEventListener('click', () => {
     loadGameStats({ reason: 'manual', withStatus: true });
