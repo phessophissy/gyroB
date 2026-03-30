@@ -232,6 +232,7 @@ function syncSelectionUI() {
     spinPosture.textContent = 'Choose a spin';
   }
 
+  renderSelectionRead();
   syncPlayButton();
 }
 
