@@ -263,6 +263,18 @@ function syncPlayButton() {
   playBtnText.textContent = `Submit Spin ${state.selectedSpin}`;
 }
 
+function updateRefreshLabels() {
+  refreshModeLabel.textContent = state.autoRefreshEnabled ? 'Every 30 seconds' : 'Manual refresh only';
+
+  if (!state.autoRefreshEnabled || !state.lastRefreshAt) {
+    nextRefreshLabel.textContent = state.lastRefreshAt ? 'Waiting for manual refresh' : 'Waiting for first refresh';
+    return;
+  }
+
+  const nextRefreshAt = state.lastRefreshAt + REFRESH_INTERVAL_MS;
+  nextRefreshLabel.textContent = nextRefreshAt <= Date.now() ? 'Refreshing soon' : formatCountdown(nextRefreshAt - Date.now());
+}
+
 async function loadGameStats({ reason = 'auto', withStatus = false } = {}) {
   if (state.isRefreshing) return;
 
