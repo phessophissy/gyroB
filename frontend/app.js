@@ -134,6 +134,7 @@ function initializeApp() {
 
   renderActivity();
   renderLastTransaction();
+  applyTheme();
   syncWalletUI();
   syncSelectionUI();
   loadGameStats({ reason: 'initial' });
@@ -553,6 +554,11 @@ function loadStoredTransaction() {
 function persistLastTransaction(txId) {
   state.lastTransaction = txId;
   localStorage.setItem(LAST_TX_STORAGE_KEY, txId);
+}
+
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', state.theme === 'sunrise' ? 'sunrise' : 'nebula');
+  themeToggleBtn.textContent = state.theme === 'sunrise' ? 'Switch to nebula' : 'Switch theme';
 }
 
 function formatStx(valueMicroStx) {
