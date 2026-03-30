@@ -157,6 +157,7 @@ function initializeApp() {
   applyTheme();
   syncWalletUI();
   syncSelectionUI();
+  refreshWalletDesk();
   loadGameStats({ reason: 'initial' });
   startAutoRefreshLoop();
 
