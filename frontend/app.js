@@ -411,6 +411,7 @@ async function loadGameStats({ reason = 'auto', withStatus = false } = {}) {
     lastUpdated.textContent = formatTimestamp(new Date());
     updateRefreshLabels();
     renderDerivedDashboard();
+    refreshWalletDesk();
 
     if (withStatus) {
       showStatus('Round stats refreshed from mainnet.', 'info');
