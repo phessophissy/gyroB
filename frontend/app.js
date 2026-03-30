@@ -384,6 +384,7 @@ async function loadGameStats({ reason = 'auto', withStatus = false } = {}) {
     state.lastRefreshAt = Date.now();
     lastUpdated.textContent = formatTimestamp(new Date());
     updateRefreshLabels();
+    renderDerivedDashboard();
 
     if (withStatus) {
       showStatus('Round stats refreshed from mainnet.', 'info');
