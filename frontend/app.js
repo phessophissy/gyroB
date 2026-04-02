@@ -82,6 +82,7 @@ const state = {
   selectedSpin: null,
   rooms: [],
   provider: null,
+  providerType: null,
   walletConnectProvider: null,
   isConnecting: false,
 };
@@ -132,30 +133,33 @@ function init() {
   approveBtn.addEventListener("click", approveRoom);
   playBtn.addEventListener("click", playRoom);
 
-  const miniPayProvider = getMiniPayProvider();
-  const provider = miniPayProvider || getInjectedProvider();
+  const detected = getProvider();
   state.provider = null;
+  state.providerType = null;
 
-  setConnectButtonsHidden(false);
-
-  if (miniPayProvider) {
+  if (detected?.type === "minipay") {
     console.info("[GyroB] MiniPay environment detected");
-    setConnectButtonLabel("Connect MiniPay");
-    bindProviderEvents(miniPayProvider);
-  } else if (provider) {
-    console.info(`[GyroB] Injected provider detected: ${getProviderLabel(provider)}`);
-    setConnectButtonLabel(`Connect ${getProviderLabel(provider)}`);
-    bindProviderEvents(provider);
-  } else if (WALLETCONNECT_PROJECT_ID) {
-    setConnectButtonLabel("Connect with WalletConnect");
+    hideConnectButtons();
+    bindProviderEvents(detected.provider);
+  } else {
+    showConnectButtons();
+    if (detected?.provider) {
+      console.info(`[GyroB] Injected provider detected: ${getProviderLabel(detected.provider)}`);
+      setConnectButtonLabel(`Connect ${getProviderLabel(detected.provider)}`);
+      bindProviderEvents(detected.provider);
+    } else if (WALLETCONNECT_PROJECT_ID) {
+      setConnectButtonLabel("Connect with WalletConnect");
+    } else {
+      setConnectButtonLabel("Connect wallet");
+    }
   }
 
   if (!CONTRACT_ADDRESS) {
     updateStatus("Connect your wallet to enter a room and submit a spin.", "success");
-  } else if (miniPayProvider) {
+  } else if (detected?.type === "minipay") {
     updateStatus("MiniPay detected. Connecting automatically...", "success");
-  } else if (provider) {
-    updateStatus(`Connect ${getProviderLabel(provider)} to enter a room and submit a spin.`, "success");
+  } else if (detected?.provider) {
+    updateStatus(`Connect ${getProviderLabel(detected.provider)} to enter a room and submit a spin.`, "success");
   } else if (WALLETCONNECT_PROJECT_ID) {
     updateStatus("Connect with WalletConnect to enter a room and submit a spin.", "success");
   } else {
@@ -163,10 +167,7 @@ function init() {
   }
 
   refreshApp();
-
-  if (miniPayProvider) {
-    void connectWallet({ silent: true });
-  }
+  void initConnection();
 }
 
 async function connectWallet(options = {}) {
@@ -178,25 +179,33 @@ async function connectWallet(options = {}) {
   }
 
   state.isConnecting = true;
-  setConnectButtonLabel("Connecting...");
+  if (!isMiniPayEnvironment()) {
+    setConnectButtonLabel("Connecting...");
+  }
 
   try {
-    const { provider: activeProvider, account } = await connectWithFallback({ silent });
+    const { provider: activeProvider, account, type } = await connectWithFallback({ silent });
     state.provider = activeProvider;
+    state.providerType = type;
     state.account = account;
+    bindProviderEvents(activeProvider);
 
     walletAddress.textContent = shorten(account);
-    setConnectButtonsHidden(Boolean(activeProvider.isMiniPay));
-    setConnectButtonLabel(activeProvider.isMiniPay ? "MiniPay connected" : `${getProviderLabel(activeProvider)} connected`);
+    if (type === "minipay") {
+      hideConnectButtons();
+    } else {
+      showConnectButtons();
+      setConnectButtonLabel(type === "walletconnect" ? "WalletConnect connected" : `${getProviderLabel(activeProvider)} connected`);
+    }
 
-    if (!silent || !activeProvider.isMiniPay) {
+    if (!silent || type !== "minipay") {
       updateStatus("Wallet connected. Choose a room, approve USDm, then submit one spin.", "success");
     }
     await refreshApp();
   } catch (error) {
     console.error("[GyroB] Wallet connection failed:", error);
-    setConnectButtonsHidden(false);
-    if (getMiniPayProvider()) {
+    showConnectButtons();
+    if (isMiniPayEnvironment()) {
       setConnectButtonLabel("Retry MiniPay");
       updateStatus("MiniPay connection failed. Tap retry to try again.", "error");
     } else if (WALLETCONNECT_PROJECT_ID) {
@@ -206,9 +215,23 @@ async function connectWallet(options = {}) {
       setConnectButtonLabel("Connect wallet");
       updateStatus(parseError(error), "error");
     }
-    window.alert("Failed to connect wallet");
   } finally {
     state.isConnecting = false;
+  }
+}
+
+async function initConnection() {
+  const detected = getProvider();
+
+  if (detected?.type === "minipay") {
+    console.info("[GyroB] MiniPay detected -> auto connecting");
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    try {
+      await connectWallet({ silent: true });
+    } catch (error) {
+      console.error("[GyroB] MiniPay auto-connect failed:", error);
+    }
   }
 }
 
@@ -469,21 +492,8 @@ function getSelectedRoom() {
   return state.rooms.find((room) => room.roomId === state.selectedRoomId);
 }
 
-function getMiniPayProvider() {
+function getProvider() {
   if (typeof window === "undefined") {
-    return null;
-  }
-
-  const provider = window.ethereum;
-  return provider?.isMiniPay ? provider : null;
-}
-
-function getInjectedProvider() {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  if (getMiniPayProvider()) {
     return null;
   }
 
@@ -492,26 +502,32 @@ function getInjectedProvider() {
     return null;
   }
 
-  const providers = Array.isArray(ethereum.providers) && ethereum.providers.length > 0
-    ? ethereum.providers
-    : [ethereum];
+  if (ethereum.isMiniPay) {
+    return { provider: ethereum, type: "minipay" };
+  }
 
-  return providers.find((provider) => provider.isMiniPay)
-    || providers.find((provider) => provider.isCoinbaseWallet)
-    || providers.find((provider) => provider.isMetaMask)
-    || providers[0]
-    || null;
+  if (Array.isArray(ethereum.providers) && ethereum.providers.length > 0) {
+    const provider = ethereum.providers.find((candidate) => candidate.isMetaMask)
+      || ethereum.providers.find((candidate) => candidate.isCoinbaseWallet)
+      || ethereum.providers[0];
+
+    return { provider, type: "injected" };
+  }
+
+  return { provider: ethereum, type: "injected" };
+}
+
+function isMiniPayEnvironment() {
+  return Boolean(typeof window !== "undefined" && window.ethereum?.isMiniPay);
 }
 
 async function getWalletClient() {
-  const provider = state.provider || getMiniPayProvider() || getInjectedProvider() || await getWalletConnectProvider();
+  const detected = getProvider();
+  const provider = state.provider || detected?.provider || await getWalletConnectProvider();
   if (!provider) {
     throw new Error("Wallet not connected.");
   }
 
-  if (!isWalletConnectProvider(provider)) {
-    await switchToCelo(provider);
-  }
   return createWalletClient({ chain: celo, transport: custom(provider) });
 }
 
@@ -528,9 +544,16 @@ function bindProviderEvents(provider) {
     if (!state.account) {
       walletBalance.textContent = "-";
       allowanceValue.textContent = "-";
-      state.provider = isWalletConnectProvider(provider) ? null : provider;
-      setConnectButtonsHidden(false);
-      setConnectButtonLabel(provider.isMiniPay ? "Connect MiniPay" : `Connect ${getProviderLabel(provider)}`);
+      state.provider = null;
+      state.providerType = null;
+      showConnectButtons();
+      if (isMiniPayEnvironment()) {
+        setConnectButtonLabel("Retry MiniPay");
+      } else if (WALLETCONNECT_PROJECT_ID) {
+        setConnectButtonLabel("Connect with WalletConnect");
+      } else {
+        setConnectButtonLabel("Connect wallet");
+      }
     }
     await refreshApp();
   });
@@ -542,11 +565,17 @@ function bindProviderEvents(provider) {
   provider.on("disconnect", async () => {
     state.account = null;
     state.provider = null;
+    state.providerType = null;
     walletAddress.textContent = "Not connected";
     walletBalance.textContent = "-";
     allowanceValue.textContent = "-";
-    setConnectButtonsHidden(false);
-    setConnectButtonLabel(WALLETCONNECT_PROJECT_ID ? "Connect with WalletConnect" : "Connect wallet");
+    if (isMiniPayEnvironment()) {
+      showConnectButtons();
+      setConnectButtonLabel("Retry MiniPay");
+    } else {
+      showConnectButtons();
+      setConnectButtonLabel(WALLETCONNECT_PROJECT_ID ? "Connect with WalletConnect" : "Connect wallet");
+    }
     updateStatus("Wallet disconnected.", "error");
     await refreshApp();
   });
@@ -578,6 +607,14 @@ function setConnectButtonLabel(label) {
   }
 }
 
+function showConnectButtons() {
+  setConnectButtonsHidden(false);
+}
+
+function hideConnectButtons() {
+  setConnectButtonsHidden(true);
+}
+
 function setConnectButtonsHidden(hidden) {
   for (const button of connectButtons) {
     button.classList.toggle("is-hidden", hidden);
@@ -599,9 +636,9 @@ async function getWalletConnectProvider() {
   const { EthereumProvider } = await import("@walletconnect/ethereum-provider");
   const provider = await EthereumProvider.init({
     projectId: WALLETCONNECT_PROJECT_ID,
-    optionalChains: [celo.id],
+    chains: [42220],
     rpcMap: {
-      [celo.id]: RPC_URL,
+      42220: RPC_URL,
     },
     showQrModal: true,
     metadata: {
@@ -621,19 +658,9 @@ async function getWalletConnectProvider() {
 }
 
 async function requestAccount(provider) {
-  if (isWalletConnectProvider(provider)) {
-    console.info("[GyroB] Requesting account via WalletConnect");
-    const accounts = await provider.request({ method: "eth_requestAccounts" });
-    const [account] = accounts || provider.accounts || [];
-    if (!account) {
-      throw new Error("WalletConnect did not return an account.");
-    }
-    return account;
-  }
-
   console.info(`[GyroB] Requesting account via ${getProviderLabel(provider)}`);
-  await switchToCelo(provider);
-  const [account] = await provider.request({ method: "eth_requestAccounts" });
+  const accounts = await provider.request({ method: "eth_requestAccounts" });
+  const [account] = accounts || provider.accounts || [];
   if (!account) {
     throw new Error("Wallet did not return an account.");
   }
@@ -642,45 +669,69 @@ async function requestAccount(provider) {
 
 async function connectWithFallback(options = {}) {
   const { silent = false } = options;
-  const miniPayProvider = getMiniPayProvider();
-  const injectedProvider = getInjectedProvider();
+  const detected = getProvider();
 
-  if (miniPayProvider) {
-    console.info("[GyroB] MiniPay detected, using injected provider only");
-    const account = await requestAccount(miniPayProvider);
-    return { provider: miniPayProvider, account };
+  if (!detected) {
+    console.info("[GyroB] No injected provider available, using WalletConnect");
+    if (!silent) {
+      updateStatus("Opening WalletConnect...", "success");
+    }
+    return connectWalletConnect();
   }
 
-  if (injectedProvider) {
+  const { provider, type } = detected;
+
+  if (type === "minipay") {
+    console.info("[GyroB] MiniPay detected, using embedded provider");
+    const account = await requestAccount(provider);
+    return { provider, account, type };
+  }
+
+  if (type === "injected") {
     try {
-      console.info(`[GyroB] Trying injected provider first: ${getProviderLabel(injectedProvider)}`);
-      const account = await requestAccount(injectedProvider);
-      return { provider: injectedProvider, account };
+      console.info(`[GyroB] Trying injected provider first: ${getProviderLabel(provider)}`);
+      const account = await requestAccount(provider);
+      await switchToCelo(provider);
+      return { provider, account, type };
     } catch (error) {
       console.warn("[GyroB] Injected provider failed, falling back to WalletConnect", error);
       if (!silent) {
-        updateStatus(`${getProviderLabel(injectedProvider)} failed. Opening WalletConnect...`, "error");
+        updateStatus(`${getProviderLabel(provider)} failed. Opening WalletConnect...`, "error");
       }
     }
-  } else {
-    console.info("[GyroB] No injected provider available, using WalletConnect");
-  }
-
-  const walletConnectProvider = await getWalletConnectProvider();
-  if (!walletConnectProvider) {
-    throw new Error("No wallet provider available. Please install a wallet or open this app in MiniPay.");
   }
 
   if (!silent) {
     updateStatus("Opening WalletConnect...", "success");
   }
-
-  const account = await requestAccount(walletConnectProvider);
-  return { provider: walletConnectProvider, account };
+  return connectWalletConnect();
 }
 
 function isWalletConnectProvider(provider) {
   return Boolean(provider) && walletConnectProviders.has(provider);
+}
+
+async function connectWalletConnect() {
+  const provider = await getWalletConnectProvider();
+  if (!provider) {
+    throw new Error("WalletConnect is unavailable. Add a project ID or use MiniPay or a browser wallet.");
+  }
+
+  const accounts = await provider.request({
+    method: "eth_requestAccounts",
+  });
+  const account = accounts?.[0] || provider.accounts?.[0];
+  if (!account) {
+    throw new Error("WalletConnect did not return an account.");
+  }
+
+  state.walletConnectProvider = provider;
+
+  return {
+    account,
+    provider,
+    type: "walletconnect",
+  };
 }
 
 async function switchToCelo(provider) {
