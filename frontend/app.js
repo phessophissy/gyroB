@@ -1,8 +1,8 @@
-import { createPublicClient, createWalletClient, custom, erc20Abi, formatUnits, http, parseUnits } from "viem";
+import { createPublicClient, createWalletClient, custom, erc20Abi, formatUnits, getAddress, http } from "viem";
 import { celo } from "viem/chains";
 
-const USDM_ADDRESS = "0x765DE816845861e75A25fCA122bb6898B8B1282a";
-const CONTRACT_ADDRESS = import.meta.env.VITE_GYROB_CONTRACT_ADDRESS || "";
+const USDM_ADDRESS = getAddress("0x765DE816845861e75A25fCA122bb6898B8B1282a");
+const CONTRACT_ADDRESS = normalizeAddress(import.meta.env.VITE_GYROB_CONTRACT_ADDRESS || "");
 const RPC_URL = import.meta.env.VITE_CELO_RPC_URL || "https://forno.celo.org";
 const MAX_APPROVAL = 2n ** 256n - 1n;
 
@@ -102,6 +102,14 @@ const summaryPlayed = document.getElementById("summaryPlayed");
 const spinGrid = document.getElementById("spinGrid");
 
 init();
+
+function normalizeAddress(value) {
+  if (!value) {
+    return "";
+  }
+
+  return getAddress(value.toLowerCase());
+}
 
 function init() {
   buildSpinGrid();
