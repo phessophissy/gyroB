@@ -301,6 +301,9 @@ h3 {
   padding: 0 16px;
   border-radius: 999px;
   font-weight: 700;
+  position: relative;
+  z-index: 2;
+  touch-action: manipulation;
   transition: transform 160ms ease, opacity 160ms ease;
 }
 

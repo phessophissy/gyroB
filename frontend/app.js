@@ -80,6 +80,7 @@ const state = {
   selectedRoomId: null,
   selectedSpin: null,
   rooms: [],
+  provider: null,
 };
 
 const connectBtn = document.getElementById("connectBtn");
@@ -118,30 +119,46 @@ function init() {
   approveBtn.addEventListener("click", approveRoom);
   playBtn.addEventListener("click", playRoom);
 
+  const provider = getProvider();
+  state.provider = provider;
+
+  if (provider) {
+    connectBtn.textContent = provider.isMiniPay ? "MiniPay ready" : `Connect ${getProviderLabel(provider)}`;
+    bindProviderEvents(provider);
+  }
+
   if (!CONTRACT_ADDRESS) {
     updateStatus("Connect your wallet to enter a room and submit a spin.", "success");
   }
 
   refreshApp();
+
+  if (provider?.isMiniPay) {
+    void connectWallet({ silent: true });
+  }
 }
 
-async function connectWallet() {
+async function connectWallet(options = {}) {
+  const { silent = false } = options;
+
   try {
     const provider = getProvider();
     if (!provider) {
-      updateStatus("MiniPay or another injected Celo wallet was not detected.", "error");
+      updateStatus("No supported wallet was detected. Open Gyro Board in MiniPay or use an injected Celo wallet.", "error");
       return;
     }
 
+    state.provider = provider;
     await switchToCelo(provider);
-    const walletClient = createWalletClient({ chain: celo, transport: custom(provider) });
-    const [account] = await walletClient.requestAddresses();
+    const [account] = await provider.request({ method: "eth_requestAccounts" });
     state.account = account;
 
     walletAddress.textContent = shorten(account);
-    connectBtn.textContent = provider.isMiniPay ? "MiniPay connected" : "Wallet connected";
+    connectBtn.textContent = provider.isMiniPay ? "MiniPay connected" : `${getProviderLabel(provider)} connected`;
 
-    updateStatus("Wallet connected. Choose a room, approve USDm, then submit one spin.", "success");
+    if (!silent || !provider.isMiniPay) {
+      updateStatus("Wallet connected. Choose a room, approve USDm, then submit one spin.", "success");
+    }
     await refreshApp();
   } catch (error) {
     updateStatus(parseError(error), "error");
@@ -406,13 +423,63 @@ function getSelectedRoom() {
 }
 
 function getProvider() {
-  return window.ethereum;
+  const ethereum = window.ethereum;
+  if (!ethereum) {
+    return null;
+  }
+
+  const providers = Array.isArray(ethereum.providers) && ethereum.providers.length > 0
+    ? ethereum.providers
+    : [ethereum];
+
+  return providers.find((provider) => provider.isMiniPay)
+    || providers.find((provider) => provider.isCoinbaseWallet)
+    || providers.find((provider) => provider.isMetaMask)
+    || providers[0]
+    || null;
 }
 
 async function getWalletClient() {
   const provider = getProvider();
   await switchToCelo(provider);
   return createWalletClient({ chain: celo, transport: custom(provider) });
+}
+
+function bindProviderEvents(provider) {
+  if (!provider?.on) {
+    return;
+  }
+
+  provider.on("accountsChanged", async (accounts) => {
+    state.account = accounts?.[0] || null;
+    walletAddress.textContent = state.account ? shorten(state.account) : "Not connected";
+    if (!state.account) {
+      walletBalance.textContent = "-";
+      allowanceValue.textContent = "-";
+      connectBtn.textContent = provider.isMiniPay ? "MiniPay ready" : `Connect ${getProviderLabel(provider)}`;
+    }
+    await refreshApp();
+  });
+
+  provider.on("chainChanged", async () => {
+    await refreshApp();
+  });
+}
+
+function getProviderLabel(provider) {
+  if (provider?.isMiniPay) {
+    return "MiniPay";
+  }
+
+  if (provider?.isCoinbaseWallet) {
+    return "Coinbase Wallet";
+  }
+
+  if (provider?.isMetaMask) {
+    return "MetaMask";
+  }
+
+  return "wallet";
 }
 
 async function switchToCelo(provider) {
