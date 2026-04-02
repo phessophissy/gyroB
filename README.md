@@ -37,6 +37,9 @@ scripts/
   batch-interaction-common.js
   create-default-rooms.js
   deploy.js
+  fund-batch-a.js
+  fund-batch-b.js
+  fund-batch-common.js
   generate-wallet-batches.js
   interact-batch-a.js
   interact-batch-b.js
@@ -205,6 +208,29 @@ This creates ignored files in `generated/`:
 - `batch-b-mainnet-wallets.json`
 - address-only CSV exports for both batches
 
+Fund Batch A from `0xfB9735dAd6ce2aE918900124Ac9FCB744DeDE7a2`:
+
+```bash
+FUNDER_PRIVATE_KEY=0xyourfunderkey npm run fund:batch-a
+```
+
+Fund Batch B from `0xfB9735dAd6ce2aE918900124Ac9FCB744DeDE7a2`:
+
+```bash
+FUNDER_PRIVATE_KEY=0xyourfunderkey npm run fund:batch-b
+```
+
+Default top-up targets:
+
+- Batch A: `0.05 CELO` and `0.05 USDm` per wallet
+- Batch B: `0.05 CELO` and `5.5 USDm` per wallet
+
+Funding behavior:
+
+- verifies the private key belongs to `0xfB9735dAd6ce2aE918900124Ac9FCB744DeDE7a2`
+- tops wallets up to the configured balance target instead of blindly resending funds
+- uses native CELO transfers for gas and USDm `transfer()` for token funding
+
 Run Batch A against a room:
 
 ```bash
@@ -222,8 +248,14 @@ Environment used by the batch scripts:
 - `CELO_RPC_URL`
 - `GYROB_CONTRACT_ADDRESS`
 - `USDM_ADDRESS`
+- `FUNDER_PRIVATE_KEY`
 - `BATCH_A_ROOM_ID`
 - `BATCH_B_ROOM_ID`
+- `BATCH_A_CELO_AMOUNT`
+- `BATCH_A_USDM_AMOUNT`
+- `BATCH_B_CELO_AMOUNT`
+- `BATCH_B_USDM_AMOUNT`
+- `FUNDING_DELAY_MS`
 - `TX_DELAY_MS`
 
 Each batch script:

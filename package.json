@@ -12,6 +12,8 @@
     "deploy:celo": "hardhat run scripts/deploy.js --network celoMainnet",
     "wallets:generate": "node scripts/generate-wallet-batches.js",
     "rooms:seed": "node scripts/create-default-rooms.js",
+    "fund:batch-a": "node scripts/fund-batch-a.js",
+    "fund:batch-b": "node scripts/fund-batch-b.js",
     "interact:batch-a": "node scripts/interact-batch-a.js",
     "interact:batch-b": "node scripts/interact-batch-b.js"
   },
