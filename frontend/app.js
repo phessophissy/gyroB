@@ -128,19 +128,19 @@ function init() {
   const provider = getInjectedProvider();
   state.provider = provider;
 
-  setConnectButtonsHidden(Boolean(provider?.isMiniPay));
+  setConnectButtonsHidden(false);
 
   if (provider) {
-    setConnectButtonLabel(provider.isMiniPay ? "MiniPay ready" : `Connect ${getProviderLabel(provider)}`);
+    setConnectButtonLabel(provider.isMiniPay ? "Connect MiniPay" : `Connect ${getProviderLabel(provider)}`);
     bindProviderEvents(provider);
   } else if (WALLETCONNECT_PROJECT_ID) {
-    setConnectButtonLabel("Connect wallet");
+    setConnectButtonLabel("Connect with WalletConnect");
   }
 
   if (!CONTRACT_ADDRESS) {
     updateStatus("Connect your wallet to enter a room and submit a spin.", "success");
   } else if (provider?.isMiniPay) {
-    updateStatus("Connecting MiniPay...", "success");
+    updateStatus("MiniPay detected. Connecting automatically...", "success");
   } else if (provider) {
     updateStatus(`Connect ${getProviderLabel(provider)} to enter a room and submit a spin.`, "success");
   } else if (WALLETCONNECT_PROJECT_ID) {
@@ -167,19 +167,23 @@ async function connectWallet(options = {}) {
       return;
     }
 
-    state.provider = provider;
-    const account = await requestAccount(provider);
+    const { provider: activeProvider, account } = await connectWithFallback(provider, { silent });
+    state.provider = activeProvider;
     state.account = account;
 
     walletAddress.textContent = shorten(account);
-    setConnectButtonsHidden(Boolean(provider.isMiniPay));
-    setConnectButtonLabel(provider.isMiniPay ? "MiniPay connected" : `${getProviderLabel(provider)} connected`);
+    setConnectButtonsHidden(Boolean(activeProvider.isMiniPay));
+    setConnectButtonLabel(activeProvider.isMiniPay ? "MiniPay connected" : `${getProviderLabel(activeProvider)} connected`);
 
-    if (!silent || !provider.isMiniPay) {
+    if (!silent || !activeProvider.isMiniPay) {
       updateStatus("Wallet connected. Choose a room, approve USDm, then submit one spin.", "success");
     }
     await refreshApp();
   } catch (error) {
+    setConnectButtonsHidden(false);
+    if (getInjectedProvider()?.isMiniPay) {
+      setConnectButtonLabel("Retry MiniPay");
+    }
     updateStatus(parseError(error), "error");
   }
 }
@@ -484,8 +488,8 @@ function bindProviderEvents(provider) {
       walletBalance.textContent = "-";
       allowanceValue.textContent = "-";
       state.provider = provider.isWalletConnect ? null : provider;
-      setConnectButtonsHidden(Boolean(provider.isMiniPay));
-      setConnectButtonLabel(provider.isMiniPay ? "MiniPay ready" : `Connect ${getProviderLabel(provider)}`);
+      setConnectButtonsHidden(false);
+      setConnectButtonLabel(provider.isMiniPay ? "Connect MiniPay" : `Connect ${getProviderLabel(provider)}`);
     }
     await refreshApp();
   });
@@ -501,7 +505,7 @@ function bindProviderEvents(provider) {
     walletBalance.textContent = "-";
     allowanceValue.textContent = "-";
     setConnectButtonsHidden(false);
-    setConnectButtonLabel("Connect wallet");
+    setConnectButtonLabel(WALLETCONNECT_PROJECT_ID ? "Connect with WalletConnect" : "Connect wallet");
     updateStatus("Wallet disconnected.", "error");
     await refreshApp();
   });
@@ -587,6 +591,32 @@ async function requestAccount(provider) {
     throw new Error("Wallet did not return an account.");
   }
   return account;
+}
+
+async function connectWithFallback(provider, options = {}) {
+  const { silent = false } = options;
+
+  try {
+    const account = await requestAccount(provider);
+    return { provider, account };
+  } catch (error) {
+    const canFallbackToWalletConnect = !provider.isWalletConnect && !provider.isMiniPay && Boolean(WALLETCONNECT_PROJECT_ID);
+    if (!canFallbackToWalletConnect) {
+      throw error;
+    }
+
+    if (!silent) {
+      updateStatus(`${getProviderLabel(provider)} did not respond. Falling back to WalletConnect...`, "error");
+    }
+
+    const walletConnectProvider = await getWalletConnectProvider();
+    if (!walletConnectProvider) {
+      throw error;
+    }
+
+    const account = await requestAccount(walletConnectProvider);
+    return { provider: walletConnectProvider, account };
+  }
 }
 
 async function switchToCelo(provider) {
