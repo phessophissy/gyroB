@@ -3,8 +3,8 @@ import { celo } from "viem/chains";
 
 const USDM_ADDRESS = getAddress("0x765DE816845861e75A25fCA122bb6898B8B1282a");
 const CONTRACT_ADDRESS = normalizeAddress(import.meta.env.VITE_GYROB_CONTRACT_ADDRESS || "");
-const RPC_URL = import.meta.env.VITE_CELO_RPC_URL || "https://forno.celo.org";
-const WALLETCONNECT_PROJECT_ID = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || "";
+const RPC_URL = normalizeEnvValue(import.meta.env.VITE_CELO_RPC_URL) || "https://forno.celo.org";
+const WALLETCONNECT_PROJECT_ID = normalizeEnvValue(import.meta.env.VITE_WALLETCONNECT_PROJECT_ID) || "";
 const MAX_APPROVAL = 2n ** 256n - 1n;
 
 const gyrobAbi = [
@@ -109,12 +109,17 @@ const connectButtons = [connectBtn, sessionConnectBtn].filter(Boolean);
 
 init();
 
+function normalizeEnvValue(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
 function normalizeAddress(value) {
-  if (!value) {
+  const normalizedValue = normalizeEnvValue(value);
+  if (!normalizedValue) {
     return "";
   }
 
-  return getAddress(value.toLowerCase());
+  return getAddress(normalizedValue.toLowerCase());
 }
 
 function init() {
