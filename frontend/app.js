@@ -85,6 +85,7 @@ const state = {
   walletConnectProvider: null,
   isConnecting: false,
 };
+const walletConnectProviders = new WeakSet();
 
 const connectBtn = document.getElementById("connectBtn");
 const sessionConnectBtn = document.getElementById("sessionConnectBtn");
@@ -508,7 +509,7 @@ async function getWalletClient() {
     throw new Error("Wallet not connected.");
   }
 
-  if (!provider.isWalletConnect) {
+  if (!isWalletConnectProvider(provider)) {
     await switchToCelo(provider);
   }
   return createWalletClient({ chain: celo, transport: custom(provider) });
@@ -527,7 +528,7 @@ function bindProviderEvents(provider) {
     if (!state.account) {
       walletBalance.textContent = "-";
       allowanceValue.textContent = "-";
-      state.provider = provider.isWalletConnect ? null : provider;
+      state.provider = isWalletConnectProvider(provider) ? null : provider;
       setConnectButtonsHidden(false);
       setConnectButtonLabel(provider.isMiniPay ? "Connect MiniPay" : `Connect ${getProviderLabel(provider)}`);
     }
@@ -556,7 +557,7 @@ function getProviderLabel(provider) {
     return "MiniPay";
   }
 
-  if (provider?.isWalletConnect) {
+  if (isWalletConnectProvider(provider)) {
     return "WalletConnect";
   }
 
@@ -611,7 +612,7 @@ async function getWalletConnectProvider() {
     },
   });
 
-  provider.isWalletConnect = true;
+  walletConnectProviders.add(provider);
   bindProviderEvents(provider);
   state.walletConnectProvider = provider;
 
@@ -620,7 +621,7 @@ async function getWalletConnectProvider() {
 }
 
 async function requestAccount(provider) {
-  if (provider.isWalletConnect) {
+  if (isWalletConnectProvider(provider)) {
     console.info("[GyroB] Requesting account via WalletConnect");
     const accounts = await provider.request({ method: "eth_requestAccounts" });
     const [account] = accounts || provider.accounts || [];
@@ -676,6 +677,10 @@ async function connectWithFallback(options = {}) {
 
   const account = await requestAccount(walletConnectProvider);
   return { provider: walletConnectProvider, account };
+}
+
+function isWalletConnectProvider(provider) {
+  return Boolean(provider) && walletConnectProviders.has(provider);
 }
 
 async function switchToCelo(provider) {
