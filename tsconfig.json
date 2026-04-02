@@ -1,9 +1,12 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "module": "CommonJS",
-    "moduleResolution": "Node",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "strict": true,
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
@@ -13,6 +16,10 @@
     ]
   },
   "include": [
-    "tests/**/*"
+    "frontend/**/*.js",
+    "scripts/**/*.js",
+    "test/**/*.js",
+    "hardhat.config.js",
+    "vite.config.js"
   ]
 }
