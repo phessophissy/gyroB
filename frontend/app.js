@@ -83,6 +83,7 @@ const state = {
   rooms: [],
   provider: null,
   walletConnectProvider: null,
+  isConnecting: false,
 };
 
 const connectBtn = document.getElementById("connectBtn");
@@ -158,16 +159,17 @@ function init() {
 
 async function connectWallet(options = {}) {
   const { silent = false } = options;
+  if (state.isConnecting) {
+    console.info("[GyroB] Wallet connection already in progress");
+    updateStatus("Wallet connection already in progress...", "success");
+    return;
+  }
+
+  state.isConnecting = true;
+  setConnectButtonLabel("Connecting...");
 
   try {
-    const injectedProvider = getInjectedProvider();
-    const provider = injectedProvider || await getWalletConnectProvider();
-    if (!provider) {
-      updateStatus("No supported wallet was detected. Open Gyro Board in MiniPay, use a browser wallet, or configure WalletConnect.", "error");
-      return;
-    }
-
-    const { provider: activeProvider, account } = await connectWithFallback(provider, { silent });
+    const { provider: activeProvider, account } = await connectWithFallback({ silent });
     state.provider = activeProvider;
     state.account = account;
 
@@ -180,11 +182,21 @@ async function connectWallet(options = {}) {
     }
     await refreshApp();
   } catch (error) {
+    console.error("[GyroB] Wallet connection failed:", error);
     setConnectButtonsHidden(false);
     if (getInjectedProvider()?.isMiniPay) {
       setConnectButtonLabel("Retry MiniPay");
+      updateStatus("MiniPay connection failed. Tap retry to try again.", "error");
+    } else if (WALLETCONNECT_PROJECT_ID) {
+      setConnectButtonLabel("Connect with WalletConnect");
+      updateStatus(parseError(error), "error");
+    } else {
+      setConnectButtonLabel("Connect wallet");
+      updateStatus(parseError(error), "error");
     }
-    updateStatus(parseError(error), "error");
+    window.alert("Failed to connect wallet");
+  } finally {
+    state.isConnecting = false;
   }
 }
 
@@ -545,13 +557,16 @@ function setConnectButtonsHidden(hidden) {
 
 async function getWalletConnectProvider() {
   if (state.walletConnectProvider) {
+    console.info("[GyroB] Reusing WalletConnect provider");
     return state.walletConnectProvider;
   }
 
   if (!WALLETCONNECT_PROJECT_ID) {
+    console.error("[GyroB] Missing VITE_WALLETCONNECT_PROJECT_ID");
     return null;
   }
 
+  console.info("[GyroB] Initializing WalletConnect provider");
   const { EthereumProvider } = await import("@walletconnect/ethereum-provider");
   const provider = await EthereumProvider.init({
     projectId: WALLETCONNECT_PROJECT_ID,
@@ -572,19 +587,22 @@ async function getWalletConnectProvider() {
   bindProviderEvents(provider);
   state.walletConnectProvider = provider;
 
+  console.info("[GyroB] WalletConnect provider initialized");
   return provider;
 }
 
 async function requestAccount(provider) {
   if (provider.isWalletConnect) {
-    await provider.enable();
-    const [account] = provider.accounts || [];
+    console.info("[GyroB] Requesting account via WalletConnect");
+    const accounts = await provider.request({ method: "eth_requestAccounts" });
+    const [account] = accounts || provider.accounts || [];
     if (!account) {
       throw new Error("WalletConnect did not return an account.");
     }
     return account;
   }
 
+  console.info(`[GyroB] Requesting account via ${getProviderLabel(provider)}`);
   await switchToCelo(provider);
   const [account] = await provider.request({ method: "eth_requestAccounts" });
   if (!account) {
@@ -593,30 +611,42 @@ async function requestAccount(provider) {
   return account;
 }
 
-async function connectWithFallback(provider, options = {}) {
+async function connectWithFallback(options = {}) {
   const { silent = false } = options;
+  const injectedProvider = getInjectedProvider();
 
-  try {
-    const account = await requestAccount(provider);
-    return { provider, account };
-  } catch (error) {
-    const canFallbackToWalletConnect = !provider.isWalletConnect && !provider.isMiniPay && Boolean(WALLETCONNECT_PROJECT_ID);
-    if (!canFallbackToWalletConnect) {
-      throw error;
-    }
-
-    if (!silent) {
-      updateStatus(`${getProviderLabel(provider)} did not respond. Falling back to WalletConnect...`, "error");
-    }
-
-    const walletConnectProvider = await getWalletConnectProvider();
-    if (!walletConnectProvider) {
-      throw error;
-    }
-
-    const account = await requestAccount(walletConnectProvider);
-    return { provider: walletConnectProvider, account };
+  if (injectedProvider?.isMiniPay) {
+    console.info("[GyroB] MiniPay detected, using injected provider only");
+    const account = await requestAccount(injectedProvider);
+    return { provider: injectedProvider, account };
   }
+
+  if (injectedProvider) {
+    try {
+      console.info(`[GyroB] Trying injected provider first: ${getProviderLabel(injectedProvider)}`);
+      const account = await requestAccount(injectedProvider);
+      return { provider: injectedProvider, account };
+    } catch (error) {
+      console.warn("[GyroB] Injected provider failed, falling back to WalletConnect", error);
+      if (!silent) {
+        updateStatus(`${getProviderLabel(injectedProvider)} failed. Opening WalletConnect...`, "error");
+      }
+    }
+  } else {
+    console.info("[GyroB] No injected provider available, using WalletConnect");
+  }
+
+  const walletConnectProvider = await getWalletConnectProvider();
+  if (!walletConnectProvider) {
+    throw new Error("No wallet provider available. Please install a wallet or open this app in MiniPay.");
+  }
+
+  if (!silent) {
+    updateStatus("Opening WalletConnect...", "success");
+  }
+
+  const account = await requestAccount(walletConnectProvider);
+  return { provider: walletConnectProvider, account };
 }
 
 async function switchToCelo(provider) {
