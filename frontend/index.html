@@ -3,373 +3,155 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#140b2b">
-  <meta
-    name="talentapp:project_verification"
-    content="552af19749efb5c03f3fdcf4b623453cc320612cff5ed064641bf10b9f0615346264481a36313d9ddf07845648ca79be3e0323f2230c8dbe2782009a01900da0"
-  >
+  <meta name="theme-color" content="#0f231b">
   <meta
     name="description"
-    content="SpinningB is a colorful Stacks mainnet game desk for choosing your spin, reading the live round, and making sharper moves."
+    content="Gyro Board is a mobile-first Celo game for MiniPay where players pick a spin from 1 to 10, join cUSD rooms, and auto-settle on the tenth move."
   >
-  <meta property="og:title" content="SpinningB | Spectrum Room">
-  <meta property="og:description" content="A colorful live Stacks dashboard for reading the round, preparing your spin, and signing into the pot.">
-  <meta property="og:type" content="website">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <title>SpinningB | Spectrum Room</title>
+  <title>GyroB | Gyro Board</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <div class="page-shell">
-    <div class="ambient ambient-one"></div>
-    <div class="ambient ambient-two"></div>
-    <div class="ambient ambient-grid"></div>
+    <div class="ambient ambient-a"></div>
+    <div class="ambient ambient-b"></div>
 
     <header class="topbar">
-      <div class="brand-lockup">
-        <span class="brand-mark">SB</span>
-        <div>
-          <p class="eyebrow">Stacks Mainnet Game</p>
-          <h1>SpinningB Spectrum Room</h1>
-        </div>
+      <div>
+        <p class="eyebrow">Celo Mainnet • MiniPay Ready</p>
+        <h1>Gyro Board</h1>
+        <p class="lede">Deterministic cUSD gameplay with independent room state and instant round settlement.</p>
       </div>
-
-      <div class="wallet-section">
-        <div id="walletInfo" class="wallet-info hidden">
-          <span id="walletStatusPill" class="wallet-pill">Wallet idle</span>
-          <span id="walletAddress" class="wallet-address"></span>
-        </div>
-        <button id="themeToggleBtn" class="btn btn-ghost" type="button">Switch theme</button>
-        <button id="connectBtn" class="btn btn-connect">Connect Wallet</button>
-      </div>
+      <button id="connectBtn" class="button button-primary" type="button">Connect wallet</button>
     </header>
 
-    <section class="trust-strip" aria-label="Key round signals">
-      <article class="trust-pill">
-        <span class="trust-label">Contract</span>
-        <strong><code>spinning-board</code></strong>
-      </article>
-      <article class="trust-pill">
-        <span class="trust-label">Network</span>
-        <strong>Mainnet live desk</strong>
-      </article>
-      <article class="trust-pill">
-        <span class="trust-label">Cadence</span>
-        <strong>30s live polling</strong>
-      </article>
-    </section>
-
-    <main class="dashboard">
-      <section class="hero-card panel">
+    <main class="layout">
+      <section class="hero card">
         <div class="hero-copy">
-          <p class="eyebrow">Round Intelligence</p>
-          <h2>Pick your number. Land the highest spin. Exit with the pot.</h2>
-          <p class="hero-text">
-            Every round accepts up to ten players. Each entry costs 0.001 STX,
-            the highest spin wins, and ties split the prize.
+          <span class="badge">GyroB</span>
+          <h2>Pick a spin from 1 to 10. The 10th player closes the room instantly.</h2>
+          <p>
+            Each room runs its own round, entry fee, pot, and winner logic. Highest spin wins.
+            Ties split 90% equally, while the creator receives 10%.
           </p>
-
-          <div class="hero-actions">
-            <button id="heroConnectBtn" class="btn btn-playful" type="button">Enter the room</button>
-            <a
-              class="inline-link"
-              href="https://explorer.stacks.co/txid/SP2KYZRNME33Y39GP3RKC90DQJ45EF1N0NZNVRE09.spinning-board?chain=mainnet"
-              target="_blank"
-              rel="noreferrer"
-            >
-              View contract
-            </a>
-            <button id="jumpToConsoleBtn" class="btn btn-ghost" type="button">Jump to play console</button>
-            <button id="refreshStatsBtn" class="btn btn-ghost" type="button">Refresh stats</button>
+          <div class="hero-stats">
+            <article>
+              <span>Token</span>
+              <strong>cUSD</strong>
+            </article>
+            <article>
+              <span>Round size</span>
+              <strong>10 players</strong>
+            </article>
+            <article>
+              <span>Spin range</span>
+              <strong>1-10</strong>
+            </article>
           </div>
         </div>
 
-        <div class="hero-side">
-          <div class="signal-card">
-            <p class="signal-label">Readiness</p>
-            <ul class="signal-list">
-              <li><span class="signal-dot"></span> Connect a Stacks wallet</li>
-              <li><span class="signal-dot"></span> Choose a spin from 1 to 10</li>
-              <li><span class="signal-dot"></span> Submit one entry per round</li>
-            </ul>
+        <div class="status-panel">
+          <p class="section-kicker">Session</p>
+          <div class="status-grid">
+            <article>
+              <span>Wallet</span>
+              <strong id="walletAddress">Not connected</strong>
+            </article>
+            <article>
+              <span>cUSD balance</span>
+              <strong id="walletBalance">-</strong>
+            </article>
+            <article>
+              <span>Allowance</span>
+              <strong id="allowanceValue">-</strong>
+            </article>
+            <article>
+              <span>Selected spin</span>
+              <strong id="selectedSpinLabel">None</strong>
+            </article>
           </div>
-
-          <div class="signal-card emphasis">
-            <p class="signal-label">Selection</p>
-            <p id="selectedSpinValue" class="selection-value">No spin selected</p>
-            <p id="selectionHint" class="selection-hint">
-              Choose a number to prepare your transaction.
-            </p>
-          </div>
-
-          <div class="signal-card prism-card">
-            <p class="signal-label">Round pulse</p>
-            <p id="roundPulseValue" class="selection-value">Awaiting sync</p>
-            <p id="roundPulseHint" class="selection-hint">
-              Live pressure and pacing cues will appear here after the first refresh.
-            </p>
-          </div>
+          <p id="statusMessage" class="status-message">Set `VITE_GYROB_CONTRACT_ADDRESS` after deployment, then connect MiniPay or another Celo wallet.</p>
         </div>
       </section>
 
-      <section class="stats-band" aria-label="Live game statistics">
-        <article class="stat-card">
-          <span class="stat-label">Current round</span>
-          <span id="currentRound" class="stat-value">-</span>
-          <span class="stat-foot">Mainnet live</span>
-        </article>
-        <article class="stat-card">
-          <span class="stat-label">Seats filled</span>
-          <span id="playerCount" class="stat-value">-/10</span>
-          <span id="roundCapacity" class="stat-foot">Waiting for sync</span>
-        </article>
-        <article class="stat-card">
-          <span class="stat-label">Round pot</span>
-          <span id="totalPot" class="stat-value">- STX</span>
-          <span id="potSignal" class="stat-foot">Awaiting chain data</span>
-        </article>
-        <article class="stat-card">
-          <span class="stat-label">High spin</span>
-          <span id="highestSpin" class="stat-value">-</span>
-          <span class="stat-foot">Best number so far</span>
-        </article>
-        <article class="stat-card">
-          <span class="stat-label">Seats open</span>
-          <span id="seatsOpen" class="stat-value">-</span>
-          <span id="seatsSignal" class="stat-foot">Waiting for sync</span>
-        </article>
-        <article class="stat-card">
-          <span class="stat-label">Projected player prize</span>
-          <span id="winnerTake" class="stat-value">- STX</span>
-          <span id="winnerTakeSignal" class="stat-foot">Based on current pot</span>
-        </article>
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">Room Tiers</p>
+            <h3>Select a room</h3>
+          </div>
+          <button id="refreshBtn" class="button button-secondary" type="button">Refresh</button>
+        </div>
+        <div id="roomList" class="room-list"></div>
       </section>
 
-      <section class="panel round-progress-card">
-        <div class="panel-head">
-          <p class="eyebrow">Round Flow</p>
-          <h3>Table pressure</h3>
+      <section class="card play-card">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">Play Flow</p>
+            <h3>Approve cUSD, then lock your number</h3>
+          </div>
+          <span id="networkPill" class="pill">Celo mainnet</span>
         </div>
-        <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0">
-          <span id="roundProgressFill"></span>
-        </div>
-        <p id="roundProgressLabel" class="progress-label">Waiting for first sync</p>
-      </section>
 
-      <section class="content-grid">
-        <section class="panel rules-card">
-          <div class="panel-head">
-            <p class="eyebrow">Round Rules</p>
-            <h3>Fast, simple, brutal.</h3>
-          </div>
-          <ul class="rule-list">
-            <li><strong>Entry fee</strong><span>0.001 STX per play</span></li>
-            <li><strong>Spin range</strong><span>Select any integer from 1 to 10</span></li>
-            <li><strong>Round cap</strong><span>Round closes after 10 total players</span></li>
-            <li><strong>Winner logic</strong><span>Highest spin wins the payout</span></li>
-            <li><strong>Tie behavior</strong><span>Equal winners split the prize evenly</span></li>
-            <li><strong>Wallet limit</strong><span>One move per wallet each round</span></li>
-          </ul>
-
-          <div class="rules-footnote">
-            <span class="summary-label">Operator note</span>
-            <strong id="roundTempo">Waiting for live round tempo</strong>
-          </div>
-        </section>
-
-        <section id="gameSection" class="panel command-card">
-          <div class="panel-head">
-            <p class="eyebrow">Play Console</p>
-            <h3>Lock your number</h3>
+        <div class="play-grid">
+          <div>
+            <p class="mini-label">Spin board</p>
+            <div id="spinGrid" class="spin-grid"></div>
           </div>
 
-          <div class="console-ribbon">
-            <div class="ribbon-chip">
-              <span class="summary-label">Round pressure</span>
-              <strong id="roundPressure">Waiting for sync</strong>
-            </div>
-            <div class="ribbon-chip">
-              <span class="summary-label">Spin posture</span>
-              <strong id="spinPosture">Choose a spin</strong>
-            </div>
-          </div>
-
-          <div class="quick-picks">
-            <button class="chip-btn" data-quick-spin="low" type="button">Low-board</button>
-            <button class="chip-btn" data-quick-spin="mid" type="button">Mid-board</button>
-            <button class="chip-btn" data-quick-spin="high" type="button">High-board</button>
-            <button class="chip-btn" data-quick-spin="random" type="button">Random</button>
-          </div>
-
-          <div class="spin-grid" role="group" aria-label="Choose your spin">
-            <button class="spin-btn" data-spin="1" type="button">1</button>
-            <button class="spin-btn" data-spin="2" type="button">2</button>
-            <button class="spin-btn" data-spin="3" type="button">3</button>
-            <button class="spin-btn" data-spin="4" type="button">4</button>
-            <button class="spin-btn" data-spin="5" type="button">5</button>
-            <button class="spin-btn" data-spin="6" type="button">6</button>
-            <button class="spin-btn" data-spin="7" type="button">7</button>
-            <button class="spin-btn" data-spin="8" type="button">8</button>
-            <button class="spin-btn" data-spin="9" type="button">9</button>
-            <button class="spin-btn" data-spin="10" type="button">10</button>
-          </div>
-
-          <p class="shortcut-note">Keyboard shortcut: press <strong>1-9</strong> or <strong>0</strong> for spin 10.</p>
-
-          <div class="selection-summary">
-            <div>
-              <span class="summary-label">Prepared move</span>
-              <strong id="selectionSummary">No spin prepared</strong>
-            </div>
-            <div>
-              <span class="summary-label">Estimated cost</span>
-              <strong>0.001 STX + network fee</strong>
-            </div>
-            <div>
-              <span class="summary-label">Payout stance</span>
-              <strong id="payoutStance">Waiting for current pot</strong>
-            </div>
-            <div>
-              <span class="summary-label">Winning read</span>
-              <strong id="winningRead">Needs chain sync</strong>
-            </div>
-          </div>
-
-          <button id="playBtn" class="btn btn-play" disabled>
-            <span id="playBtnText">Connect Wallet to Play</span>
-          </button>
-
-          <p class="fee-note">Typical transaction fee is about 0.002 STX, depending on network conditions.</p>
-        </section>
-
-        <aside class="panel intel-card">
-          <div class="panel-head">
-            <p class="eyebrow">Round Feed</p>
-            <h3>What your session knows</h3>
-          </div>
-
-          <div class="intel-stack">
-            <div class="intel-block">
-              <span class="summary-label">Connection state</span>
-              <strong id="connectionState">Wallet not connected</strong>
-            </div>
-            <div class="intel-block">
-              <span class="summary-label">Last chain refresh</span>
-              <strong id="lastUpdated">Not refreshed yet</strong>
-            </div>
-            <div class="intel-block">
-              <span class="summary-label">Auto refresh</span>
-              <strong id="refreshModeLabel">Every 30 seconds</strong>
-            </div>
-            <div class="intel-block">
-              <span class="summary-label">Next sync</span>
-              <strong id="nextRefreshLabel">Waiting for first refresh</strong>
-            </div>
-          </div>
-
-          <div class="feed-controls">
-            <button id="toggleRefreshBtn" class="btn btn-ghost" type="button">Pause auto refresh</button>
-          </div>
-
-          <div id="statusMessage" class="status-message hidden" aria-live="polite"></div>
-
-          <section id="txHistory" class="tx-history hidden">
-            <h4>Latest transaction</h4>
-            <a id="txLink" href="#" target="_blank" rel="noreferrer" class="tx-link"></a>
-          </section>
-
-          <section class="activity-card" aria-label="Session activity">
-            <div class="activity-head">
+          <div class="summary-box">
+            <p class="mini-label">Round summary</p>
+            <dl class="summary-list">
               <div>
-                <h4>Session activity</h4>
-                <span class="summary-label">Local browser history</span>
+                <dt>Room</dt>
+                <dd id="summaryRoom">Select a room</dd>
               </div>
-              <div class="activity-controls">
-                <button class="chip-btn is-active" data-activity-filter="all" type="button">All</button>
-                <button class="chip-btn" data-activity-filter="wallet" type="button">Wallet</button>
-                <button class="chip-btn" data-activity-filter="game" type="button">Game</button>
-                <button id="clearActivityBtn" class="chip-btn" type="button">Clear</button>
+              <div>
+                <dt>Round</dt>
+                <dd id="summaryRound">-</dd>
               </div>
-            </div>
-            <ul id="activityList" class="activity-list">
-              <li class="activity-empty">No local activity yet. Connect a wallet or refresh stats.</li>
-            </ul>
-          </section>
-        </aside>
+              <div>
+                <dt>Players</dt>
+                <dd id="summaryPlayers">-</dd>
+              </div>
+              <div>
+                <dt>Pot</dt>
+                <dd id="summaryPot">-</dd>
+              </div>
+              <div>
+                <dt>Highest spin</dt>
+                <dd id="summaryHighSpin">-</dd>
+              </div>
+              <div>
+                <dt>You played?</dt>
+                <dd id="summaryPlayed">-</dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+
+        <div class="action-row">
+          <button id="approveBtn" class="button button-secondary" type="button" disabled>Approve cUSD</button>
+          <button id="playBtn" class="button button-primary" type="button" disabled>Play selected room</button>
+        </div>
       </section>
 
-      <section class="lower-grid">
-        <section class="panel strategy-card">
-          <div class="panel-head">
-            <p class="eyebrow">Spin Board</p>
-            <h3>Decision support</h3>
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">Current Room</p>
+            <h3>Players in the active round</h3>
           </div>
-
-          <div class="strategy-grid">
-            <div class="intel-block">
-              <span class="summary-label">Conservative line</span>
-              <strong id="conservativeSpin">Watching the round</strong>
-            </div>
-            <div class="intel-block">
-              <span class="summary-label">Aggressive line</span>
-              <strong id="aggressiveSpin">Pick from the upper range</strong>
-            </div>
-            <div class="intel-block">
-              <span class="summary-label">Round story</span>
-              <strong id="roundStory">Refresh to read the table</strong>
-            </div>
-            <div class="intel-block">
-              <span class="summary-label">Prize split note</span>
-              <strong id="splitNote">Tied winners split the player prize</strong>
-            </div>
-          </div>
-        </section>
-
-        <section class="panel network-card">
-          <div class="panel-head">
-            <p class="eyebrow">Network Desk</p>
-            <h3>Mainnet context</h3>
-          </div>
-
-          <div class="strategy-grid">
-            <div class="intel-block">
-              <span class="summary-label">Chain tip</span>
-              <strong id="chainTip">Checking</strong>
-            </div>
-            <div class="intel-block">
-              <span class="summary-label">Node health</span>
-              <strong id="nodeHealth">Connecting</strong>
-            </div>
-            <div class="intel-block">
-              <span class="summary-label">Wallet balance</span>
-              <strong id="walletBalance">Connect wallet</strong>
-            </div>
-            <div class="intel-block">
-              <span class="summary-label">Play budget</span>
-              <strong id="playBudget">Waiting for balance</strong>
-            </div>
-          </div>
-        </section>
+        </div>
+        <div id="playerList" class="player-list">
+          <p class="empty-state">Select a room to inspect the active round.</p>
+        </div>
       </section>
     </main>
-
-    <footer class="footer">
-      <p>
-        Contract:
-        <a
-          href="https://explorer.stacks.co/txid/SP2KYZRNME33Y39GP3RKC90DQJ45EF1N0NZNVRE09.spinning-board?chain=mainnet"
-          target="_blank"
-          rel="noreferrer"
-        >
-          SP2KYZRN...E09.spinning-board
-        </a>
-      </p>
-      <p>Built on <a href="https://www.stacks.co" target="_blank" rel="noreferrer">Stacks</a> for live round play.</p>
-    </footer>
   </div>
 
-  <script type="module" src="app.js"></script>
+  <script type="module" src="/app.js"></script>
 </body>
 </html>
