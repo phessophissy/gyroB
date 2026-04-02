@@ -126,13 +126,19 @@ function init() {
   approveBtn.addEventListener("click", approveRoom);
   playBtn.addEventListener("click", playRoom);
 
-  const provider = getInjectedProvider();
-  state.provider = provider;
+  const miniPayProvider = getMiniPayProvider();
+  const provider = miniPayProvider || getInjectedProvider();
+  state.provider = null;
 
   setConnectButtonsHidden(false);
 
-  if (provider) {
-    setConnectButtonLabel(provider.isMiniPay ? "Connect MiniPay" : `Connect ${getProviderLabel(provider)}`);
+  if (miniPayProvider) {
+    console.info("[GyroB] MiniPay environment detected");
+    setConnectButtonLabel("Connect MiniPay");
+    bindProviderEvents(miniPayProvider);
+  } else if (provider) {
+    console.info(`[GyroB] Injected provider detected: ${getProviderLabel(provider)}`);
+    setConnectButtonLabel(`Connect ${getProviderLabel(provider)}`);
     bindProviderEvents(provider);
   } else if (WALLETCONNECT_PROJECT_ID) {
     setConnectButtonLabel("Connect with WalletConnect");
@@ -140,7 +146,7 @@ function init() {
 
   if (!CONTRACT_ADDRESS) {
     updateStatus("Connect your wallet to enter a room and submit a spin.", "success");
-  } else if (provider?.isMiniPay) {
+  } else if (miniPayProvider) {
     updateStatus("MiniPay detected. Connecting automatically...", "success");
   } else if (provider) {
     updateStatus(`Connect ${getProviderLabel(provider)} to enter a room and submit a spin.`, "success");
@@ -152,7 +158,7 @@ function init() {
 
   refreshApp();
 
-  if (provider?.isMiniPay) {
+  if (miniPayProvider) {
     void connectWallet({ silent: true });
   }
 }
@@ -184,7 +190,7 @@ async function connectWallet(options = {}) {
   } catch (error) {
     console.error("[GyroB] Wallet connection failed:", error);
     setConnectButtonsHidden(false);
-    if (getInjectedProvider()?.isMiniPay) {
+    if (getMiniPayProvider()) {
       setConnectButtonLabel("Retry MiniPay");
       updateStatus("MiniPay connection failed. Tap retry to try again.", "error");
     } else if (WALLETCONNECT_PROJECT_ID) {
@@ -457,7 +463,24 @@ function getSelectedRoom() {
   return state.rooms.find((room) => room.roomId === state.selectedRoomId);
 }
 
+function getMiniPayProvider() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const provider = window.ethereum;
+  return provider?.isMiniPay ? provider : null;
+}
+
 function getInjectedProvider() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  if (getMiniPayProvider()) {
+    return null;
+  }
+
   const ethereum = window.ethereum;
   if (!ethereum) {
     return null;
@@ -475,7 +498,7 @@ function getInjectedProvider() {
 }
 
 async function getWalletClient() {
-  const provider = state.provider || getInjectedProvider() || await getWalletConnectProvider();
+  const provider = state.provider || getMiniPayProvider() || getInjectedProvider() || await getWalletConnectProvider();
   if (!provider) {
     throw new Error("Wallet not connected.");
   }
@@ -613,12 +636,13 @@ async function requestAccount(provider) {
 
 async function connectWithFallback(options = {}) {
   const { silent = false } = options;
+  const miniPayProvider = getMiniPayProvider();
   const injectedProvider = getInjectedProvider();
 
-  if (injectedProvider?.isMiniPay) {
+  if (miniPayProvider) {
     console.info("[GyroB] MiniPay detected, using injected provider only");
-    const account = await requestAccount(injectedProvider);
-    return { provider: injectedProvider, account };
+    const account = await requestAccount(miniPayProvider);
+    return { provider: miniPayProvider, account };
   }
 
   if (injectedProvider) {
