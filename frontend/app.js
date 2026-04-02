@@ -84,6 +84,7 @@ const state = {
 };
 
 const connectBtn = document.getElementById("connectBtn");
+const sessionConnectBtn = document.getElementById("sessionConnectBtn");
 const refreshBtn = document.getElementById("refreshBtn");
 const approveBtn = document.getElementById("approveBtn");
 const playBtn = document.getElementById("playBtn");
@@ -101,6 +102,7 @@ const summaryPot = document.getElementById("summaryPot");
 const summaryHighSpin = document.getElementById("summaryHighSpin");
 const summaryPlayed = document.getElementById("summaryPlayed");
 const spinGrid = document.getElementById("spinGrid");
+const connectButtons = [connectBtn, sessionConnectBtn].filter(Boolean);
 
 init();
 
@@ -114,7 +116,9 @@ function normalizeAddress(value) {
 
 function init() {
   buildSpinGrid();
-  connectBtn.addEventListener("click", connectWallet);
+  for (const button of connectButtons) {
+    button.addEventListener("click", connectWallet);
+  }
   refreshBtn.addEventListener("click", refreshApp);
   approveBtn.addEventListener("click", approveRoom);
   playBtn.addEventListener("click", playRoom);
@@ -123,7 +127,7 @@ function init() {
   state.provider = provider;
 
   if (provider) {
-    connectBtn.textContent = provider.isMiniPay ? "MiniPay ready" : `Connect ${getProviderLabel(provider)}`;
+    setConnectButtonLabel(provider.isMiniPay ? "MiniPay ready" : `Connect ${getProviderLabel(provider)}`);
     bindProviderEvents(provider);
   }
 
@@ -154,7 +158,7 @@ async function connectWallet(options = {}) {
     state.account = account;
 
     walletAddress.textContent = shorten(account);
-    connectBtn.textContent = provider.isMiniPay ? "MiniPay connected" : `${getProviderLabel(provider)} connected`;
+    setConnectButtonLabel(provider.isMiniPay ? "MiniPay connected" : `${getProviderLabel(provider)} connected`);
 
     if (!silent || !provider.isMiniPay) {
       updateStatus("Wallet connected. Choose a room, approve USDm, then submit one spin.", "success");
@@ -456,7 +460,7 @@ function bindProviderEvents(provider) {
     if (!state.account) {
       walletBalance.textContent = "-";
       allowanceValue.textContent = "-";
-      connectBtn.textContent = provider.isMiniPay ? "MiniPay ready" : `Connect ${getProviderLabel(provider)}`;
+      setConnectButtonLabel(provider.isMiniPay ? "MiniPay ready" : `Connect ${getProviderLabel(provider)}`);
     }
     await refreshApp();
   });
@@ -480,6 +484,12 @@ function getProviderLabel(provider) {
   }
 
   return "wallet";
+}
+
+function setConnectButtonLabel(label) {
+  for (const button of connectButtons) {
+    button.textContent = label;
+  }
 }
 
 async function switchToCelo(provider) {

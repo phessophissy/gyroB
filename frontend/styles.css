@@ -79,11 +79,15 @@ button {
 }
 
 .topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
   gap: 16px;
   margin-bottom: 18px;
+}
+
+.topbar > :first-child {
+  min-width: 0;
 }
 
 .eyebrow,
@@ -301,6 +305,9 @@ h3 {
   padding: 0 16px;
   border-radius: 999px;
   font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   position: relative;
   z-index: 2;
   touch-action: manipulation;
@@ -326,6 +333,11 @@ h3 {
   color: var(--text);
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid var(--line);
+}
+
+.status-connect-button {
+  margin-top: 10px;
+  width: 100%;
 }
 
 .player-list {
@@ -369,6 +381,11 @@ h3 {
   .room-meta {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .topbar {
+    display: grid;
+    grid-template-columns: 1fr;
   }
 
   .hero-stats,
