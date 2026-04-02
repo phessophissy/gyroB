@@ -1,24 +1,27 @@
 # Gyro Board (GyroB)
 
-Gyro Board is a Celo game built around fast, deterministic cUSD rounds. Players choose a spin from 1 to 10, each room fills to exactly 10 players, and the round auto-finalizes as soon as the tenth player joins.
+Gyro Board is a standalone game on Celo, designed for MiniPay as a Mini App. Players join cUSD rooms, choose a spin from 1 to 10, and compete in deterministic 10-player rounds that settle automatically when the final seat is filled.
 
-## What Changed
+## Game Overview
 
-- Target chain: Celo Mainnet
-- Wallet UX: MiniPay-compatible injected wallet flow
-- Token: cUSD (ERC-20)
-- Rooms: multiple independent tiers keyed by `roomId`
-- Payouts: `90%` to highest-spin winner(s), `10%` to the game creator
+- Chain: Celo Mainnet
+- Wallet experience: MiniPay-compatible Mini App flow
+- Token: cUSD
+- Room model: independent tiers keyed by `roomId`
+- Round size: 10 players
+- Spin range: integers from `1` to `10`
+- Payout split: `90%` to highest-spin winner(s), `10%` to the game creator
 
-## Mechanics Preserved
+## Rules
 
-- Spin range remains `1-10`
-- Max players remains `10`
+- Each room runs its own round state.
+- Every player pays the room entry fee in cUSD.
+- Spins must be between `1` and `10`.
+- Each round accepts exactly `10` players.
 - One play per wallet per room round
-- Highest spin wins
-- Ties split the winner pool equally
-- Tenth player auto-finalizes the round
-- Room state is isolated per tier
+- The highest spin wins the round.
+- If multiple players share the highest spin, they split the winner pool equally.
+- The 10th player triggers automatic round finalization.
 
 ## Project Structure
 
@@ -140,7 +143,7 @@ It also seeds four default rooms:
 
 ## Frontend
 
-The Vite frontend is mobile-first and works with MiniPay-compatible injected providers.
+The Vite frontend is mobile-first and built for MiniPay-compatible injected providers.
 
 ### Frontend Environment
 
