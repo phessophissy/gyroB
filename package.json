@@ -1,36 +1,32 @@
 {
-  "name": "spinning-board-game",
+  "name": "gyrob",
   "version": "1.0.0",
-  "description": "A spinning board game on Stacks blockchain (Mainnet)",
+  "description": "Gyro Board (GyroB) on Celo with MiniPay support",
   "type": "module",
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",
-    "preview": "vite preview",
-    "test": "clarinet test",
-    "play": "node scripts/play-game.js play",
-    "wallets:generate": "node scripts/play-game.js generate --count 50",
-    "wallets:play:dry": "node scripts/play-game.js play --wallets generated/mainnet-wallets.json --count 10 --spin random --dry-run",
-    "wallets:play": "node scripts/play-game.js play --wallets generated/mainnet-wallets.json --count 10 --spin random",
-    "wallets:fund:dry": "node scripts/fund-wallets.js --wallets generated/mainnet-wallets.json --count 50 --dry-run",
-    "wallets:fund": "node scripts/fund-wallets.js --wallets generated/mainnet-wallets.json --count 50"
+    "preview": "vite preview --host",
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:celo": "hardhat run scripts/deploy.js --network celoMainnet"
   },
   "keywords": [
-    "stacks",
-    "blockchain",
-    "game",
-    "clarity",
-    "mainnet"
+    "celo",
+    "minipay",
+    "cusd",
+    "solidity",
+    "blockchain-game"
   ],
-  "author": "",
   "license": "MIT",
   "dependencies": {
-    "@stacks/connect": "^8.2.4",
-    "@stacks/network": "^6.17.0",
-    "@stacks/transactions": "^6.17.0",
-    "@stacks/wallet-sdk": "^7.2.0"
+    "viem": "^2.23.5"
   },
   "devDependencies": {
-    "vite": "^5.0.0"
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@openzeppelin/contracts": "^5.2.0",
+    "dotenv": "^16.4.7",
+    "hardhat": "^2.22.18",
+    "vite": "^5.4.14"
   }
 }

@@ -1,6 +1,8 @@
 # Dependencies
 node_modules/
 dist/
+artifacts/
+cache/
 
 # Environment files
 .env
@@ -33,7 +35,5 @@ deployments/
 settings/
 !settings/Devnet.toml
 
-# Script-related files/folders
+# Legacy generated script scratch paths
 script/
-scripts/
-*script*
