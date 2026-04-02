@@ -34,7 +34,12 @@ frontend/
   styles.css
   app.js
 scripts/
+  batch-interaction-common.js
+  create-default-rooms.js
   deploy.js
+  generate-wallet-batches.js
+  interact-batch-a.js
+  interact-batch-b.js
 test/
   GyroBoard.t.js
 hardhat.config.js
@@ -183,6 +188,64 @@ MiniPay note:
 
 - Inside MiniPay, wallet connection is implicit and the app auto-connects on load.
 - On desktop, WalletConnect requires a valid Reown project ID.
+
+## Mainnet Wallet Batches
+
+GyroB includes local-only tooling to generate mainnet wallets in two batches and run separate contract interaction scripts for each batch.
+
+Generate wallets:
+
+```bash
+npm run wallets:generate
+```
+
+This creates ignored files in `generated/`:
+
+- `batch-a-mainnet-wallets.json`
+- `batch-b-mainnet-wallets.json`
+- address-only CSV exports for both batches
+
+Run Batch A against a room:
+
+```bash
+GYROB_CONTRACT_ADDRESS=0xa0C01234FEEA3401dE13598b3ef823afe0a9672B BATCH_A_ROOM_ID=1 npm run interact:batch-a
+```
+
+Run Batch B against a room:
+
+```bash
+GYROB_CONTRACT_ADDRESS=0xa0C01234FEEA3401dE13598b3ef823afe0a9672B BATCH_B_ROOM_ID=2 npm run interact:batch-b
+```
+
+Environment used by the batch scripts:
+
+- `CELO_RPC_URL`
+- `GYROB_CONTRACT_ADDRESS`
+- `USDM_ADDRESS`
+- `BATCH_A_ROOM_ID`
+- `BATCH_B_ROOM_ID`
+- `TX_DELAY_MS`
+
+Each batch script:
+
+- loads its own local wallet file
+- checks CELO gas balance and USDm balance
+- submits `approve()` if allowance is below the room fee
+- calls `play(roomId, spin)` for each funded wallet
+- uses deterministic spins from `1-10` across the batch
+
+If your deployed contract has no rooms yet, seed the default tiers first:
+
+```bash
+GYROB_CONTRACT_ADDRESS=0xa0C01234FEEA3401dE13598b3ef823afe0a9672B OPERATOR_PRIVATE_KEY=0xyourkey npm run rooms:seed
+```
+
+This creates:
+
+- Room 1: `0.02 USDm`
+- Room 2: `5 USDm`
+- Room 3: `10 USDm`
+- Room 4: `100 USDm`
 
 ## Assumptions
 

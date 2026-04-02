@@ -9,7 +9,11 @@
     "preview": "vite preview --host",
     "compile": "hardhat compile",
     "test": "hardhat test",
-    "deploy:celo": "hardhat run scripts/deploy.js --network celoMainnet"
+    "deploy:celo": "hardhat run scripts/deploy.js --network celoMainnet",
+    "wallets:generate": "node scripts/generate-wallet-batches.js",
+    "rooms:seed": "node scripts/create-default-rooms.js",
+    "interact:batch-a": "node scripts/interact-batch-a.js",
+    "interact:batch-b": "node scripts/interact-batch-b.js"
   },
   "keywords": [
     "celo",
