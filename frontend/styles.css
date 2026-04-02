@@ -51,6 +51,10 @@ button {
   cursor: pointer;
 }
 
+.is-hidden {
+  display: none !important;
+}
+
 .page-shell {
   position: relative;
   max-width: 1120px;

@@ -143,7 +143,11 @@ It also seeds four default rooms:
 
 ## Frontend
 
-The Vite frontend is mobile-first and built for MiniPay-compatible injected providers.
+The Vite frontend is mobile-first and supports:
+
+- implicit MiniPay connection inside the MiniPay app
+- injected browser wallets on desktop
+- WalletConnect on desktop when a Reown project ID is configured
 
 ### Frontend Environment
 
@@ -152,6 +156,7 @@ Set a deployed contract address before running the UI:
 ```bash
 VITE_GYROB_CONTRACT_ADDRESS=0xyourdeployedcontract
 VITE_CELO_RPC_URL=https://forno.celo.org
+VITE_WALLETCONNECT_PROJECT_ID=your_reown_project_id
 ```
 
 ### Run Locally
@@ -173,6 +178,11 @@ npm run build
 3. Approve USDm.
 4. Choose a spin from `1-10`.
 5. Submit `play(roomId, spin)`.
+
+MiniPay note:
+
+- Inside MiniPay, wallet connection is implicit and the app auto-connects on load.
+- On desktop, WalletConnect requires a valid Reown project ID.
 
 ## Assumptions
 
