@@ -119,7 +119,7 @@ function init() {
   playBtn.addEventListener("click", playRoom);
 
   if (!CONTRACT_ADDRESS) {
-    updateStatus("Set VITE_GYROB_CONTRACT_ADDRESS after deploying the contract.", "error");
+    updateStatus("Connect your wallet to enter a room and submit a spin.", "success");
   }
 
   refreshApp();
