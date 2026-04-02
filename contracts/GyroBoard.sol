@@ -16,7 +16,7 @@ contract GyroBoard is ReentrancyGuard {
     uint256 public constant MIN_ENTRY_FEE = 0.02 ether;
     uint256 public constant MAX_ENTRY_FEE = 100 ether;
 
-    IERC20 public immutable cUSD;
+    IERC20 public immutable mentoDollar;
     address public immutable creator;
 
     struct Room {
@@ -53,11 +53,11 @@ contract GyroBoard is ReentrancyGuard {
     event RoundCompleted(uint256 roomId, uint256 round, uint256 highestSpin, uint256 winnerCount);
     event Payout(address indexed recipient, uint256 amount, uint256 roomId);
 
-    constructor(address cUSDToken, address creatorAddress) {
-        require(cUSDToken != address(0), "cUSD token required");
+    constructor(address usdMToken, address creatorAddress) {
+        require(usdMToken != address(0), "USDm token required");
         require(creatorAddress != address(0), "creator required");
 
-        cUSD = IERC20(cUSDToken);
+        mentoDollar = IERC20(usdMToken);
         creator = creatorAddress;
     }
 
@@ -88,7 +88,7 @@ contract GyroBoard is ReentrancyGuard {
         uint256 round = room.currentRound;
         if (hasPlayed[roomId][round][msg.sender]) revert AlreadyPlayed();
 
-        cUSD.safeTransferFrom(msg.sender, address(this), room.entryFee);
+        mentoDollar.safeTransferFrom(msg.sender, address(this), room.entryFee);
 
         uint256 playerIndex = room.playerCount;
         playerSpins[roomId][round][msg.sender] = spin;
@@ -134,13 +134,13 @@ contract GyroBoard is ReentrancyGuard {
         uint256 winnerPool = (room.totalPot * WINNER_SHARE) / 100;
         uint256 payoutPerWinner = winnerPool / winnerCount;
 
-        cUSD.safeTransfer(creator, creatorAmount);
+        mentoDollar.safeTransfer(creator, creatorAmount);
         emit Payout(creator, creatorAmount, roomId);
 
         for (uint256 i = 0; i < MAX_PLAYERS; i++) {
             Player memory playerData = roundPlayers[roomId][round][i];
             if (playerData.spin == room.highestSpin) {
-                cUSD.safeTransfer(playerData.player, payoutPerWinner);
+                mentoDollar.safeTransfer(playerData.player, payoutPerWinner);
                 emit Payout(playerData.player, payoutPerWinner, roomId);
             }
         }

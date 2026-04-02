@@ -1,12 +1,12 @@
 # Gyro Board (GyroB)
 
-Gyro Board is a standalone game on Celo, designed for MiniPay as a Mini App. Players join cUSD rooms, choose a spin from 1 to 10, and compete in deterministic 10-player rounds that settle automatically when the final seat is filled.
+Gyro Board is a standalone game on Celo, designed for MiniPay as a Mini App. Players join USDm rooms, choose a spin from 1 to 10, and compete in deterministic 10-player rounds that settle automatically when the final seat is filled.
 
 ## Game Overview
 
 - Chain: Celo Mainnet
 - Wallet experience: MiniPay-compatible Mini App flow
-- Token: cUSD
+- Token: Mento Dollar (`USDm`)
 - Room model: independent tiers keyed by `roomId`
 - Round size: 10 players
 - Spin range: integers from `1` to `10`
@@ -15,7 +15,7 @@ Gyro Board is a standalone game on Celo, designed for MiniPay as a Mini App. Pla
 ## Rules
 
 - Each room runs its own round state.
-- Every player pays the room entry fee in cUSD.
+- Every player pays the room entry fee in USDm.
 - Spins must be between `1` and `10`.
 - Each round accepts exactly `10` players.
 - One play per wallet per room round
@@ -28,7 +28,7 @@ Gyro Board is a standalone game on Celo, designed for MiniPay as a Mini App. Pla
 ```text
 contracts/
   GyroBoard.sol
-  MockCUSD.sol
+  MockUSDm.sol
 frontend/
   index.html
   styles.css
@@ -130,16 +130,16 @@ Deploy:
 npm run deploy:celo
 ```
 
-The deployment script uses the Celo mainnet cUSD token at:
+The deployment script uses the Celo mainnet USDm token at:
 
 - `0x765DE816845861e75A25fCA122bb6898B8B1282a`
 
 It also seeds four default rooms:
 
-- Room 1: `0.02 cUSD`
-- Room 2: `5 cUSD`
-- Room 3: `10 cUSD`
-- Room 4: `100 cUSD`
+- Room 1: `0.02 USDm`
+- Room 2: `5 USDm`
+- Room 3: `10 USDm`
+- Room 4: `100 USDm`
 
 ## Frontend
 
@@ -170,7 +170,7 @@ npm run build
 
 1. Connect MiniPay or another injected Celo wallet.
 2. Select a room tier.
-3. Approve cUSD.
+3. Approve USDm.
 4. Choose a spin from `1-10`.
 5. Submit `play(roomId, spin)`.
 

@@ -1,7 +1,7 @@
 import { createPublicClient, createWalletClient, custom, erc20Abi, formatUnits, http, parseUnits } from "viem";
 import { celo } from "viem/chains";
 
-const CUSD_ADDRESS = "0x765DE816845861e75A25fCA122bb6898B8B1282a";
+const USDM_ADDRESS = "0x765DE816845861e75A25fCA122bb6898B8B1282a";
 const CONTRACT_ADDRESS = import.meta.env.VITE_GYROB_CONTRACT_ADDRESS || "";
 const RPC_URL = import.meta.env.VITE_CELO_RPC_URL || "https://forno.celo.org";
 const MAX_APPROVAL = 2n ** 256n - 1n;
@@ -133,7 +133,7 @@ async function connectWallet() {
     walletAddress.textContent = shorten(account);
     connectBtn.textContent = provider.isMiniPay ? "MiniPay connected" : "Wallet connected";
 
-    updateStatus("Wallet connected. Choose a room, approve cUSD, then submit one spin.", "success");
+    updateStatus("Wallet connected. Choose a room, approve USDm, then submit one spin.", "success");
     await refreshApp();
   } catch (error) {
     updateStatus(parseError(error), "error");
@@ -192,21 +192,21 @@ async function syncAccountState() {
   const selectedRoom = getSelectedRoom();
   const [balance, allowance] = await Promise.all([
     publicClient.readContract({
-      address: CUSD_ADDRESS,
+      address: USDM_ADDRESS,
       abi: erc20Abi,
       functionName: "balanceOf",
       args: [state.account],
     }),
     publicClient.readContract({
-      address: CUSD_ADDRESS,
+      address: USDM_ADDRESS,
       abi: erc20Abi,
       functionName: "allowance",
       args: [state.account, CONTRACT_ADDRESS],
     }),
   ]);
 
-  walletBalance.textContent = `${formatCUSD(balance)} cUSD`;
-  allowanceValue.textContent = selectedRoom ? `${formatCUSD(allowance)} cUSD` : `${formatCUSD(allowance)} cUSD`;
+  walletBalance.textContent = `${formatUSDm(balance)} USDm`;
+  allowanceValue.textContent = selectedRoom ? `${formatUSDm(allowance)} USDm` : `${formatUSDm(allowance)} USDm`;
 }
 
 async function renderSelectedRoom() {
@@ -222,10 +222,10 @@ async function renderSelectedRoom() {
     return;
   }
 
-  summaryRoom.textContent = `Room ${room.roomId} • ${formatCUSD(room.entryFee)} cUSD`;
+  summaryRoom.textContent = `Room ${room.roomId} • ${formatUSDm(room.entryFee)} USDm`;
   summaryRound.textContent = room.currentRound.toString();
   summaryPlayers.textContent = `${room.playerCount}/10`;
-  summaryPot.textContent = `${formatCUSD(room.totalPot)} cUSD`;
+  summaryPot.textContent = `${formatUSDm(room.totalPot)} USDm`;
   summaryHighSpin.textContent = room.highestSpin === 0n ? "None yet" : room.highestSpin.toString();
 
   const hasPlayed = state.account
@@ -277,7 +277,7 @@ function renderRooms(rooms) {
       const active = room.roomId === state.selectedRoomId ? "active" : "";
       return `
         <button class="room-card ${active}" type="button" data-room-id="${room.roomId}">
-          <span class="room-chip">${formatCUSD(room.entryFee)} cUSD entry</span>
+          <span class="room-chip">${formatUSDm(room.entryFee)} USDm entry</span>
           <h3>Room ${room.roomId}</h3>
           <div class="room-meta">
             <div>
@@ -292,7 +292,7 @@ function renderRooms(rooms) {
           <div class="room-meta">
             <div>
               <span class="metric-label">Pot</span>
-              <strong>${formatCUSD(room.totalPot)} cUSD</strong>
+              <strong>${formatUSDm(room.totalPot)} USDm</strong>
             </div>
             <div>
               <span class="metric-label">High spin</span>
@@ -342,7 +342,7 @@ async function approveRoom() {
   try {
     const walletClient = await getWalletClient();
     const { request } = await publicClient.simulateContract({
-      address: CUSD_ADDRESS,
+      address: USDM_ADDRESS,
       abi: erc20Abi,
       functionName: "approve",
       args: [CONTRACT_ADDRESS, MAX_APPROVAL],
@@ -352,7 +352,7 @@ async function approveRoom() {
     const hash = await walletClient.writeContract(request);
     updateStatus(`Approval submitted: ${shorten(hash)}`, "success");
     await publicClient.waitForTransactionReceipt({ hash });
-    updateStatus(`cUSD approval confirmed for Room ${room.roomId}.`, "success");
+    updateStatus(`USDm approval confirmed for Room ${room.roomId}.`, "success");
     await syncAccountState();
     syncControls();
   } catch (error) {
@@ -439,7 +439,7 @@ async function switchToCelo(provider) {
   }
 }
 
-function formatCUSD(value) {
+function formatUSDm(value) {
   return Number(formatUnits(value, 18)).toLocaleString(undefined, {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,

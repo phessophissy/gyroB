@@ -8,7 +8,7 @@ const parse = ethers.parseUnits;
 describe("GyroBoard", function () {
   async function deployFixture() {
     const [creator, opener, ...players] = await ethers.getSigners();
-    const mockFactory = await ethers.getContractFactory("MockCUSD");
+    const mockFactory = await ethers.getContractFactory("MockUSDm");
     const token = await mockFactory.deploy();
     await token.waitForDeployment();
 
@@ -31,7 +31,7 @@ describe("GyroBoard", function () {
     await board.connect(signer).play(roomId, spin);
   }
 
-  it("creates rooms with valid cUSD entry fees", async function () {
+  it("creates rooms with valid USDm entry fees", async function () {
     const { board } = await deployFixture();
 
     await expect(board.createRoom(1, parse("0.02", 18)))
@@ -139,7 +139,7 @@ describe("GyroBoard", function () {
     const [creator, roomOpener] = await ethers.getSigners();
     const walletFactory = Array.from({ length: 110 }, () => ethers.Wallet.createRandom().connect(ethers.provider));
 
-    const mockFactory = await ethers.getContractFactory("MockCUSD");
+    const mockFactory = await ethers.getContractFactory("MockUSDm");
     const token = await mockFactory.deploy();
     await token.waitForDeployment();
 

@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0f231b">
   <meta
     name="description"
-    content="Gyro Board is a mobile-first Celo game for MiniPay where players pick a spin from 1 to 10, join cUSD rooms, and auto-settle on the tenth move."
+    content="Gyro Board is a mobile-first Celo game for MiniPay where players pick a spin from 1 to 10, join USDm rooms, and auto-settle on the tenth move."
   >
   <title>GyroB | Gyro Board</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -21,7 +21,7 @@
       <div>
         <p class="eyebrow">Celo Mainnet • MiniPay Ready</p>
         <h1>Gyro Board</h1>
-        <p class="lede">Deterministic cUSD gameplay with independent room state and instant round settlement.</p>
+        <p class="lede">Deterministic USDm gameplay with independent room state and instant round settlement.</p>
       </div>
       <button id="connectBtn" class="button button-primary" type="button">Connect wallet</button>
     </header>
@@ -38,7 +38,7 @@
           <div class="hero-stats">
             <article>
               <span>Token</span>
-              <strong>cUSD</strong>
+              <strong>USDm</strong>
             </article>
             <article>
               <span>Round size</span>
@@ -59,7 +59,7 @@
               <strong id="walletAddress">Not connected</strong>
             </article>
             <article>
-              <span>cUSD balance</span>
+              <span>USDm balance</span>
               <strong id="walletBalance">-</strong>
             </article>
             <article>
@@ -90,7 +90,7 @@
         <div class="section-head">
           <div>
             <p class="section-kicker">Play Flow</p>
-            <h3>Approve cUSD, then lock your number</h3>
+            <h3>Approve USDm, then lock your number</h3>
           </div>
           <span id="networkPill" class="pill">Celo mainnet</span>
         </div>
@@ -133,7 +133,7 @@
         </div>
 
         <div class="action-row">
-          <button id="approveBtn" class="button button-secondary" type="button" disabled>Approve cUSD</button>
+          <button id="approveBtn" class="button button-secondary" type="button" disabled>Approve USDm</button>
           <button id="playBtn" class="button button-primary" type="button" disabled>Play selected room</button>
         </div>
       </section>
