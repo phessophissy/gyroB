@@ -20,6 +20,12 @@ const defaultRooms = [
   { roomId: 4n, entryFee: parseUnits("100", 18) },
 ];
 
+function normalizeRoom(room) {
+  return {
+    exists: room[5],
+  };
+}
+
 async function main() {
   if (!OPERATOR_PRIVATE_KEY) {
     throw new Error("Set OPERATOR_PRIVATE_KEY or DEPLOYER_PRIVATE_KEY to seed rooms.");
@@ -39,12 +45,12 @@ async function main() {
   console.log(`Seeding rooms on ${GYROB_CONTRACT_ADDRESS} with operator ${account.address}`);
 
   for (const room of defaultRooms) {
-    const existingRoom = await publicClient.readContract({
+    const existingRoom = normalizeRoom(await publicClient.readContract({
       address: GYROB_CONTRACT_ADDRESS,
       abi: roomAbi,
       functionName: "rooms",
       args: [room.roomId],
-    });
+    }));
 
     if (existingRoom.exists) {
       console.log(`Room ${room.roomId.toString()} already exists. Skipping.`);
@@ -59,7 +65,10 @@ async function main() {
       account: account.address,
     });
 
-    const hash = await walletClient.writeContract(request);
+    const hash = await walletClient.writeContract({
+      ...request,
+      account,
+    });
     await publicClient.waitForTransactionReceipt({ hash });
     console.log(`Created room ${room.roomId.toString()} with ${formatUnits(room.entryFee, 18)} USDm entry fee`);
   }

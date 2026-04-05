@@ -98,6 +98,18 @@ const playerList = document.getElementById("playerList");
 const walletAddress = document.getElementById("walletAddress");
 const walletBalance = document.getElementById("walletBalance");
 const allowanceValue = document.getElementById("allowanceValue");
+
+// Practice mode refs
+const practiceSpinGrid = document.getElementById("practiceSpinGrid");
+const practiceBtn = document.getElementById("practiceBtn");
+const practiceResult = document.getElementById("practiceResult");
+const practiceYou = document.getElementById("practiceYou");
+const practiceComp = document.getElementById("practiceComp");
+const practiceOutcome = document.getElementById("practiceOutcome");
+const practiceHistory = document.getElementById("practiceHistory");
+
+let practiceSelectedSpin = null;
+const practiceLog = [];
 const selectedSpinLabel = document.getElementById("selectedSpinLabel");
 const statusMessage = document.getElementById("statusMessage");
 const summaryRoom = document.getElementById("summaryRoom");
@@ -110,6 +122,8 @@ const spinGrid = document.getElementById("spinGrid");
 const connectButtons = [connectBtn, sessionConnectBtn].filter(Boolean);
 
 init();
+initTabs();
+initPractice();
 
 function normalizeEnvValue(value) {
   return typeof value === "string" ? value.trim() : "";
@@ -314,7 +328,7 @@ async function renderSelectedRoom() {
     summaryPot.textContent = "-";
     summaryHighSpin.textContent = "-";
     summaryPlayed.textContent = "-";
-    playerList.innerHTML = '<p class="empty-state">Select a room to inspect the active round.</p>';
+    playerList.innerHTML = '<p class="empty">Select a room first.</p>';
     return;
   }
 
@@ -343,7 +357,7 @@ async function renderSelectedRoom() {
   });
 
   if (players.length === 0) {
-    playerList.innerHTML = '<p class="empty-state">No players have joined this round yet.</p>';
+    playerList.innerHTML = '<p class="empty">No players have joined this round yet.</p>';
     return;
   }
 
@@ -364,7 +378,7 @@ async function renderSelectedRoom() {
 
 function renderRooms(rooms) {
   if (rooms.length === 0) {
-    roomList.innerHTML = '<p class="empty-state">No rooms found yet. Deploy and create room tiers first.</p>';
+    roomList.innerHTML = '<p class="empty">No rooms found yet.</p>';
     return;
   }
 
@@ -780,9 +794,68 @@ function shorten(value) {
 
 function updateStatus(message, tone = "") {
   statusMessage.textContent = message;
-  statusMessage.className = `status-message ${tone ? `is-${tone}` : ""}`.trim();
+  statusMessage.className = `status-msg ${tone ? `is-${tone}` : ""}`.trim();
 }
 
 function parseError(error) {
   return error?.shortMessage || error?.message || "Transaction failed.";
+}
+
+/* ===== TAB SWITCHING ===== */
+function initTabs() {
+  const tabs = document.querySelectorAll(".tab-bar .tab");
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const target = tab.dataset.tab;
+      tabs.forEach((t) => t.classList.toggle("active", t === tab));
+      document.getElementById("tabPractice").classList.toggle("active", target === "practice");
+      document.getElementById("tabPlay").classList.toggle("active", target === "play");
+    });
+  });
+}
+
+/* ===== PRACTICE MODE ===== */
+function initPractice() {
+  // Build spin grid for practice
+  practiceSpinGrid.innerHTML = Array.from({ length: 10 }, (_, i) => {
+    const n = i + 1;
+    return `<button class="spin-button" data-spin="${n}" type="button">${n}</button>`;
+  }).join("");
+
+  for (const btn of practiceSpinGrid.querySelectorAll("[data-spin]")) {
+    btn.addEventListener("click", () => {
+      practiceSelectedSpin = Number(btn.dataset.spin);
+      for (const b of practiceSpinGrid.querySelectorAll(".spin-button")) {
+        b.classList.toggle("active", b === btn);
+      }
+      practiceBtn.disabled = false;
+    });
+  }
+
+  practiceBtn.addEventListener("click", runPracticeSpin);
+}
+
+function runPracticeSpin() {
+  if (!practiceSelectedSpin) return;
+
+  const computerSpin = Math.floor(Math.random() * 10) + 1;
+  practiceYou.textContent = practiceSelectedSpin;
+  practiceComp.textContent = computerSpin;
+
+  let outcome;
+  if (practiceSelectedSpin > computerSpin) {
+    outcome = { text: "You win!", cls: "win" };
+  } else if (practiceSelectedSpin < computerSpin) {
+    outcome = { text: "Computer wins!", cls: "lose" };
+  } else {
+    outcome = { text: "It's a tie!", cls: "tie" };
+  }
+
+  practiceOutcome.textContent = outcome.text;
+  practiceOutcome.className = `result-outcome ${outcome.cls}`;
+  practiceResult.classList.remove("is-hidden");
+
+  practiceLog.unshift(`You ${practiceSelectedSpin} vs CPU ${computerSpin} — ${outcome.text}`);
+  if (practiceLog.length > 20) practiceLog.length = 20;
+  practiceHistory.innerHTML = practiceLog.map((l) => `<p>${l}</p>`).join("");
 }

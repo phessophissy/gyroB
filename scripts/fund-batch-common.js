@@ -53,7 +53,10 @@ async function transferUSDm(walletClient, funderAccount, recipient, amount) {
     account: funderAccount.address,
   });
 
-  const hash = await walletClient.writeContract(request);
+  const hash = await walletClient.writeContract({
+    ...request,
+    account: funderAccount,
+  });
   await publicClient.waitForTransactionReceipt({ hash });
   return hash;
 }

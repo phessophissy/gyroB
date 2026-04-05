@@ -47,6 +47,17 @@ function formatNative(value) {
   return `${formatUnits(value, 18)} CELO`;
 }
 
+function normalizeRoom(room) {
+  return {
+    entryFee: room[0],
+    currentRound: room[1],
+    playerCount: room[2],
+    totalPot: room[3],
+    highestSpin: room[4],
+    exists: room[5],
+  };
+}
+
 function buildSpin(index) {
   return BigInt((index % 10) + 1);
 }
@@ -80,8 +91,13 @@ async function ensureAllowance(walletClient, account, entryFee) {
     account: account.address,
   });
 
-  const hash = await walletClient.writeContract(request);
+  const hash = await walletClient.writeContract({
+    ...request,
+    account,
+  });
   await publicClient.waitForTransactionReceipt({ hash });
+  // Wait for RPC node to reflect the new allowance
+  await sleep(2000);
   return true;
 }
 
@@ -94,7 +110,10 @@ async function playRoom(walletClient, account, roomId, spin) {
     account: account.address,
   });
 
-  const hash = await walletClient.writeContract(request);
+  const hash = await walletClient.writeContract({
+    ...request,
+    account,
+  });
   await publicClient.waitForTransactionReceipt({ hash });
   return hash;
 }
@@ -113,12 +132,12 @@ export async function runBatchInteractions({
   console.log(`RPC: ${CELO_RPC_URL}`);
   console.log(`Target room: ${normalizedRoomId.toString()}`);
 
-  const room = await publicClient.readContract({
+  const room = normalizeRoom(await publicClient.readContract({
     address: GYROB_CONTRACT_ADDRESS,
     abi: gyrobAbi,
     functionName: "rooms",
     args: [normalizedRoomId],
-  });
+  }));
 
   if (!room.exists) {
     const roomIds = await publicClient.readContract({
@@ -149,7 +168,7 @@ export async function runBatchInteractions({
     });
 
     try {
-      const [nativeBalance, tokenBalance, latestRoom] = await Promise.all([
+      const [nativeBalance, tokenBalance, latestRoomRaw] = await Promise.all([
         publicClient.getBalance({ address: account.address }),
         publicClient.readContract({
           address: USDM_ADDRESS,
@@ -164,6 +183,7 @@ export async function runBatchInteractions({
           args: [normalizedRoomId],
         }),
       ]);
+      const latestRoom = normalizeRoom(latestRoomRaw);
 
       const alreadyPlayed = await publicClient.readContract({
         address: GYROB_CONTRACT_ADDRESS,
