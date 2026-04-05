@@ -1,22 +1,37 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <defs>
-    <radialGradient id="bg" cx="30%" cy="25%" r="80%">
-      <stop offset="0%" stop-color="#f6d595"/>
-      <stop offset="55%" stop-color="#8a1e2e"/>
-      <stop offset="100%" stop-color="#3b0a12"/>
+    <radialGradient id="bg" cx="30%" cy="25%" r="85%">
+      <stop offset="0%" stop-color="#1a3d2e"/>
+      <stop offset="100%" stop-color="#0a1511"/>
+    </radialGradient>
+    <radialGradient id="disc" cx="40%" cy="35%" r="70%">
+      <stop offset="0%" stop-color="#61f0a7"/>
+      <stop offset="100%" stop-color="#2a9e6a"/>
     </radialGradient>
   </defs>
   <rect width="64" height="64" rx="14" fill="url(#bg)"/>
   <g transform="translate(32 32)">
-    <circle r="18" fill="#f8e7c0" opacity="0.95"/>
-    <circle r="15" fill="#7a1223"/>
-    <circle r="8" fill="#f3c96e"/>
-    <circle r="2.4" fill="#4a0c16"/>
-    <g fill="#f8e7c0">
-      <path d="M0-17.5 2.3-13.8 -2.3-13.8Z"/>
-      <path d="M17.5 0 13.8 2.3 13.8-2.3Z" transform="rotate(30)"/>
-      <path d="M0 17.5 2.3 13.8 -2.3 13.8Z"/>
-      <path d="M-17.5 0 -13.8 2.3 -13.8-2.3Z" transform="rotate(30)"/>
+    <!-- outer ring -->
+    <circle r="22" fill="none" stroke="#f0c24b" stroke-width="2.5" opacity="0.9"/>
+    <!-- tick marks -->
+    <g stroke="#f0c24b" stroke-width="1.5" opacity="0.7">
+      <line x1="0" y1="-22" x2="0" y2="-18"/>
+      <line x1="0" y1="-22" x2="0" y2="-18" transform="rotate(36)"/>
+      <line x1="0" y1="-22" x2="0" y2="-18" transform="rotate(72)"/>
+      <line x1="0" y1="-22" x2="0" y2="-18" transform="rotate(108)"/>
+      <line x1="0" y1="-22" x2="0" y2="-18" transform="rotate(144)"/>
+      <line x1="0" y1="-22" x2="0" y2="-18" transform="rotate(180)"/>
+      <line x1="0" y1="-22" x2="0" y2="-18" transform="rotate(216)"/>
+      <line x1="0" y1="-22" x2="0" y2="-18" transform="rotate(252)"/>
+      <line x1="0" y1="-22" x2="0" y2="-18" transform="rotate(288)"/>
+      <line x1="0" y1="-22" x2="0" y2="-18" transform="rotate(324)"/>
     </g>
+    <!-- inner disc -->
+    <circle r="14" fill="url(#disc)" opacity="0.95"/>
+    <!-- center hub -->
+    <circle r="5" fill="#f0c24b"/>
+    <circle r="2" fill="#0a1511"/>
+    <!-- pointer arrow at top -->
+    <path d="M0-25 3-20 -3-20Z" fill="#f0c24b"/>
   </g>
 </svg>
