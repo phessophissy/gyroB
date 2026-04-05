@@ -251,14 +251,15 @@ async function refreshApp() {
 
     const rooms = await Promise.all(
       roomIds.map(async (roomId) => {
-        const room = await publicClient.readContract({
+        const result = await publicClient.readContract({
           address: CONTRACT_ADDRESS,
           abi: gyrobAbi,
           functionName: "rooms",
           args: [roomId],
         });
 
-        return { roomId, ...room };
+        const [entryFee, currentRound, playerCount, totalPot, highestSpin, exists] = result;
+        return { roomId, entryFee, currentRound, playerCount, totalPot, highestSpin, exists };
       }),
     );
 
