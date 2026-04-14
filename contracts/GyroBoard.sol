@@ -72,12 +72,19 @@ contract GyroBoard is ReentrancyGuard {
     /// @dev Internal array used to enumerate all created room IDs.
     uint256[] private roomIds;
 
+    /// @notice Thrown when attempting to create a room with an ID that already exists.
     error RoomAlreadyExists();
+    /// @notice Thrown when interacting with a roomId that has not been created.
     error RoomDoesNotExist();
+    /// @notice Thrown when a room's entry fee is outside the MIN_ENTRY_FEE..MAX_ENTRY_FEE range.
     error InvalidEntryFee();
+    /// @notice Thrown when a player tries to join a round that already has MAX_PLAYERS.
     error RoundFull();
+    /// @notice Thrown when a spin value is outside the MIN_SPIN..MAX_SPIN range.
     error InvalidSpin();
+    /// @notice Thrown when a player tries to play the same room and round twice.
     error AlreadyPlayed();
+    /// @notice Thrown during finalization if no players matched the highest spin (should be unreachable).
     error NoWinners();
 
     event RoomCreated(uint256 roomId, uint256 entryFee);
