@@ -31,7 +31,9 @@ contract GyroBoard is ReentrancyGuard {
     /// @notice Maximum entry fee a room can be created with (100 USDm).
     uint256 public constant MAX_ENTRY_FEE = 100 ether;
 
+    /// @notice The ERC-20 token used for entry fees and payouts (Mento Dollar on Celo).
     IERC20 public immutable mentoDollar;
+    /// @notice Address that receives the creator share (CREATOR_SHARE %) of every pot.
     address public immutable creator;
 
     struct Room {
