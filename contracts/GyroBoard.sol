@@ -36,6 +36,13 @@ contract GyroBoard is ReentrancyGuard {
     /// @notice Address that receives the creator share (CREATOR_SHARE %) of every pot.
     address public immutable creator;
 
+    /// @notice Represents the configuration and live state of a game room.
+    /// @param entryFee USDm amount each player must pay to join a round.
+    /// @param currentRound Monotonically increasing round counter; starts at 1.
+    /// @param playerCount Number of players who have joined the current round (0–10).
+    /// @param totalPot Accumulated entry fees for the current round.
+    /// @param highestSpin The largest spin value submitted so far this round.
+    /// @param exists Whether the room has been created.
     struct Room {
         uint256 entryFee;
         uint256 currentRound;
@@ -45,6 +52,9 @@ contract GyroBoard is ReentrancyGuard {
         bool exists;
     }
 
+    /// @notice A record of a single player's spin within a round.
+    /// @param player The wallet address of the participant.
+    /// @param spin The spin value chosen by this player (MIN_SPIN..MAX_SPIN).
     struct Player {
         address player;
         uint256 spin;
