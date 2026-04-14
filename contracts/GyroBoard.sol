@@ -203,6 +203,11 @@ contract GyroBoard is ReentrancyGuard {
         }
     }
 
+    /// @dev Finalizes a completed round by distributing the pot: CREATOR_SHARE %
+    ///      to the creator address and WINNER_SHARE % split equally among all
+    ///      players who submitted the highest spin. Resets room state for the next round.
+    /// @param roomId The room being finalized.
+    /// @param round The round number being finalized.
     function _finalizeRound(uint256 roomId, uint256 round) private {
         Room storage room = rooms[roomId];
         uint256 winnerCount = _countWinners(roomId, round, room.highestSpin);
@@ -231,6 +236,11 @@ contract GyroBoard is ReentrancyGuard {
         room.highestSpin = 0;
     }
 
+    /// @dev Counts how many players in a round submitted a specific spin value.
+    /// @param roomId The room to inspect.
+    /// @param round The round to inspect.
+    /// @param targetSpin The spin value to count.
+    /// @return count The number of players whose spin matches targetSpin.
     function _countWinners(uint256 roomId, uint256 round, uint256 targetSpin) private view returns (uint256 count) {
         for (uint256 i = 0; i < MAX_PLAYERS; i++) {
             if (roundPlayers[roomId][round][i].spin == targetSpin) {
