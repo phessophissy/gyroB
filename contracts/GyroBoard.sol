@@ -87,9 +87,26 @@ contract GyroBoard is ReentrancyGuard {
     /// @notice Thrown during finalization if no players matched the highest spin (should be unreachable).
     error NoWinners();
 
+    /// @notice Emitted when a new room is created.
+    /// @param roomId The unique identifier assigned to the room.
+    /// @param entryFee The USDm entry fee for the room.
     event RoomCreated(uint256 roomId, uint256 entryFee);
+    /// @notice Emitted each time a player submits a spin.
+    /// @param player The address of the player.
+    /// @param roomId The room the player joined.
+    /// @param round The round number within that room.
+    /// @param spin The spin value the player chose.
     event Played(address indexed player, uint256 roomId, uint256 round, uint256 spin);
+    /// @notice Emitted when a round auto-finalizes after the tenth player.
+    /// @param roomId The room whose round completed.
+    /// @param round The round number that was finalized.
+    /// @param highestSpin The winning spin value.
+    /// @param winnerCount How many players shared the highest spin.
     event RoundCompleted(uint256 roomId, uint256 round, uint256 highestSpin, uint256 winnerCount);
+    /// @notice Emitted for each payout transfer (winners and creator).
+    /// @param recipient The address receiving USDm.
+    /// @param amount The USDm amount transferred.
+    /// @param roomId The room the payout originated from.
     event Payout(address indexed recipient, uint256 amount, uint256 roomId);
 
     constructor(address usdMToken, address creatorAddress) {
