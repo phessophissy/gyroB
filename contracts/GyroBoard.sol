@@ -16,12 +16,19 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 contract GyroBoard is ReentrancyGuard {
     using SafeERC20 for IERC20;
 
+    /// @notice Lowest valid spin value a player may submit.
     uint256 public constant MIN_SPIN = 1;
+    /// @notice Highest valid spin value a player may submit.
     uint256 public constant MAX_SPIN = 10;
+    /// @notice Number of players required to fill a round and trigger finalization.
     uint256 public constant MAX_PLAYERS = 10;
+    /// @notice Percentage of the pot distributed to winners (basis: 100).
     uint256 public constant WINNER_SHARE = 90;
+    /// @notice Percentage of the pot sent to the game creator (basis: 100).
     uint256 public constant CREATOR_SHARE = 10;
+    /// @notice Minimum entry fee a room can be created with (0.02 USDm).
     uint256 public constant MIN_ENTRY_FEE = 0.02 ether;
+    /// @notice Maximum entry fee a room can be created with (100 USDm).
     uint256 public constant MAX_ENTRY_FEE = 100 ether;
 
     IERC20 public immutable mentoDollar;
