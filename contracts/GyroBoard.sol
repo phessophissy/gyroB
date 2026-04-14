@@ -109,6 +109,9 @@ contract GyroBoard is ReentrancyGuard {
     /// @param roomId The room the payout originated from.
     event Payout(address indexed recipient, uint256 amount, uint256 roomId);
 
+    /// @notice Initializes the game with the USDm token and creator payout address.
+    /// @param usdMToken Address of the Mento Dollar ERC-20 contract on Celo.
+    /// @param creatorAddress Address that will receive the 10 % creator share of every pot.
     constructor(address usdMToken, address creatorAddress) {
         require(usdMToken != address(0), "USDm token required");
         require(creatorAddress != address(0), "creator required");
