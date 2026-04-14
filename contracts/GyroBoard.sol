@@ -60,11 +60,16 @@ contract GyroBoard is ReentrancyGuard {
         uint256 spin;
     }
 
+    /// @notice Lookup table of all rooms keyed by roomId.
     mapping(uint256 => Room) public rooms;
+    /// @notice Records the spin value a player submitted: roomId → round → player → spin.
     mapping(uint256 => mapping(uint256 => mapping(address => uint256))) public playerSpins;
+    /// @notice Tracks whether a player has already played in a given round: roomId → round → player → bool.
     mapping(uint256 => mapping(uint256 => mapping(address => bool))) public hasPlayed;
+    /// @notice Ordered list of players in a round: roomId → round → index → Player.
     mapping(uint256 => mapping(uint256 => mapping(uint256 => Player))) public roundPlayers;
 
+    /// @dev Internal array used to enumerate all created room IDs.
     uint256[] private roomIds;
 
     error RoomAlreadyExists();
