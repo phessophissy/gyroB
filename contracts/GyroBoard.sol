@@ -120,6 +120,11 @@ contract GyroBoard is ReentrancyGuard {
         creator = creatorAddress;
     }
 
+    /// @notice Creates a new game room with a fixed entry fee.
+    /// @dev The room ID is caller-chosen and must be unique. Entry fee must be
+    ///      within [MIN_ENTRY_FEE, MAX_ENTRY_FEE]. The room starts at round 1.
+    /// @param roomId A unique identifier for the room.
+    /// @param entryFee The USDm amount each player pays to enter a round.
     function createRoom(uint256 roomId, uint256 entryFee) external {
         if (rooms[roomId].exists) revert RoomAlreadyExists();
         if (entryFee < MIN_ENTRY_FEE || entryFee > MAX_ENTRY_FEE) revert InvalidEntryFee();
@@ -137,6 +142,12 @@ contract GyroBoard is ReentrancyGuard {
         emit RoomCreated(roomId, entryFee);
     }
 
+    /// @notice Submit a spin to an active room for the current round.
+    /// @dev Transfers the entry fee from the caller via safeTransferFrom, records
+    ///      the spin, and auto-finalizes the round when the tenth player joins.
+    ///      Protected by nonReentrant to prevent reentrancy during finalization payouts.
+    /// @param roomId The room to play in (must exist and not be full).
+    /// @param spin The spin value to submit (must be between MIN_SPIN and MAX_SPIN).
     function play(uint256 roomId, uint256 spin) external nonReentrant {
         Room storage room = rooms[roomId];
 
@@ -168,10 +179,18 @@ contract GyroBoard is ReentrancyGuard {
         }
     }
 
+    /// @notice Returns the list of all room IDs that have been created.
+    /// @return An array of room ID values.
     function getRoomIds() external view returns (uint256[] memory) {
         return roomIds;
     }
 
+    /// @notice Returns the player list for a specific round in a room.
+    /// @dev For the current (in-progress) round, only playerCount entries are
+    ///      returned. For completed rounds, all MAX_PLAYERS entries are returned.
+    /// @param roomId The room to query.
+    /// @param round The round number to query.
+    /// @return players An array of Player structs for the requested round.
     function getRoundPlayers(uint256 roomId, uint256 round) external view returns (Player[] memory players) {
         Room memory room = rooms[roomId];
         if (!room.exists) revert RoomDoesNotExist();
