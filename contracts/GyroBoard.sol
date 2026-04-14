@@ -5,6 +5,14 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
+/// @title GyroBoard
+/// @notice A deterministic spin-to-win game on Celo using USDm (Mento Dollar).
+/// Players join rooms by paying an entry fee, choose a spin value between 1 and
+/// 10, and compete in 10-player rounds. The round auto-finalizes when the tenth
+/// player joins, distributing 90 % of the pot to the highest-spin winner(s) and
+/// 10 % to the game creator.
+/// @dev Uses OpenZeppelin ReentrancyGuard on the play function and SafeERC20 for
+/// all token transfers. Room state is fully isolated by roomId and round number.
 contract GyroBoard is ReentrancyGuard {
     using SafeERC20 for IERC20;
 
