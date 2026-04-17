@@ -5,20 +5,44 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
+/// @title GyroBoard
+/// @notice A deterministic spin-to-win game on Celo using USDm (Mento Dollar).
+/// Players join rooms by paying an entry fee, choose a spin value between 1 and
+/// 10, and compete in 10-player rounds. The round auto-finalizes when the tenth
+/// player joins, distributing 90 % of the pot to the highest-spin winner(s) and
+/// 10 % to the game creator.
+/// @dev Uses OpenZeppelin ReentrancyGuard on the play function and SafeERC20 for
+/// all token transfers. Room state is fully isolated by roomId and round number.
 contract GyroBoard is ReentrancyGuard {
     using SafeERC20 for IERC20;
 
+    /// @notice Lowest valid spin value a player may submit.
     uint256 public constant MIN_SPIN = 1;
+    /// @notice Highest valid spin value a player may submit.
     uint256 public constant MAX_SPIN = 10;
+    /// @notice Number of players required to fill a round and trigger finalization.
     uint256 public constant MAX_PLAYERS = 10;
+    /// @notice Percentage of the pot distributed to winners (basis: 100).
     uint256 public constant WINNER_SHARE = 90;
+    /// @notice Percentage of the pot sent to the game creator (basis: 100).
     uint256 public constant CREATOR_SHARE = 10;
+    /// @notice Minimum entry fee a room can be created with (0.02 USDm).
     uint256 public constant MIN_ENTRY_FEE = 0.02 ether;
+    /// @notice Maximum entry fee a room can be created with (100 USDm).
     uint256 public constant MAX_ENTRY_FEE = 100 ether;
 
+    /// @notice The ERC-20 token used for entry fees and payouts (Mento Dollar on Celo).
     IERC20 public immutable mentoDollar;
+    /// @notice Address that receives the creator share (CREATOR_SHARE %) of every pot.
     address public immutable creator;
 
+    /// @notice Represents the configuration and live state of a game room.
+    /// @param entryFee USDm amount each player must pay to join a round.
+    /// @param currentRound Monotonically increasing round counter; starts at 1.
+    /// @param playerCount Number of players who have joined the current round (0–10).
+    /// @param totalPot Accumulated entry fees for the current round.
+    /// @param highestSpin The largest spin value submitted so far this round.
+    /// @param exists Whether the room has been created.
     struct Room {
         uint256 entryFee;
         uint256 currentRound;
@@ -28,31 +52,66 @@ contract GyroBoard is ReentrancyGuard {
         bool exists;
     }
 
+    /// @notice A record of a single player's spin within a round.
+    /// @param player The wallet address of the participant.
+    /// @param spin The spin value chosen by this player (MIN_SPIN..MAX_SPIN).
     struct Player {
         address player;
         uint256 spin;
     }
 
+    /// @notice Lookup table of all rooms keyed by roomId.
     mapping(uint256 => Room) public rooms;
+    /// @notice Records the spin value a player submitted: roomId → round → player → spin.
     mapping(uint256 => mapping(uint256 => mapping(address => uint256))) public playerSpins;
+    /// @notice Tracks whether a player has already played in a given round: roomId → round → player → bool.
     mapping(uint256 => mapping(uint256 => mapping(address => bool))) public hasPlayed;
+    /// @notice Ordered list of players in a round: roomId → round → index → Player.
     mapping(uint256 => mapping(uint256 => mapping(uint256 => Player))) public roundPlayers;
 
+    /// @dev Internal array used to enumerate all created room IDs.
     uint256[] private roomIds;
 
+    /// @notice Thrown when attempting to create a room with an ID that already exists.
     error RoomAlreadyExists();
+    /// @notice Thrown when interacting with a roomId that has not been created.
     error RoomDoesNotExist();
+    /// @notice Thrown when a room's entry fee is outside the MIN_ENTRY_FEE..MAX_ENTRY_FEE range.
     error InvalidEntryFee();
+    /// @notice Thrown when a player tries to join a round that already has MAX_PLAYERS.
     error RoundFull();
+    /// @notice Thrown when a spin value is outside the MIN_SPIN..MAX_SPIN range.
     error InvalidSpin();
+    /// @notice Thrown when a player tries to play the same room and round twice.
     error AlreadyPlayed();
+    /// @notice Thrown during finalization if no players matched the highest spin (should be unreachable).
     error NoWinners();
 
+    /// @notice Emitted when a new room is created.
+    /// @param roomId The unique identifier assigned to the room.
+    /// @param entryFee The USDm entry fee for the room.
     event RoomCreated(uint256 roomId, uint256 entryFee);
+    /// @notice Emitted each time a player submits a spin.
+    /// @param player The address of the player.
+    /// @param roomId The room the player joined.
+    /// @param round The round number within that room.
+    /// @param spin The spin value the player chose.
     event Played(address indexed player, uint256 roomId, uint256 round, uint256 spin);
+    /// @notice Emitted when a round auto-finalizes after the tenth player.
+    /// @param roomId The room whose round completed.
+    /// @param round The round number that was finalized.
+    /// @param highestSpin The winning spin value.
+    /// @param winnerCount How many players shared the highest spin.
     event RoundCompleted(uint256 roomId, uint256 round, uint256 highestSpin, uint256 winnerCount);
+    /// @notice Emitted for each payout transfer (winners and creator).
+    /// @param recipient The address receiving USDm.
+    /// @param amount The USDm amount transferred.
+    /// @param roomId The room the payout originated from.
     event Payout(address indexed recipient, uint256 amount, uint256 roomId);
 
+    /// @notice Initializes the game with the USDm token and creator payout address.
+    /// @param usdMToken Address of the Mento Dollar ERC-20 contract on Celo.
+    /// @param creatorAddress Address that will receive the 10 % creator share of every pot.
     constructor(address usdMToken, address creatorAddress) {
         require(usdMToken != address(0), "USDm token required");
         require(creatorAddress != address(0), "creator required");
@@ -61,6 +120,11 @@ contract GyroBoard is ReentrancyGuard {
         creator = creatorAddress;
     }
 
+    /// @notice Creates a new game room with a fixed entry fee.
+    /// @dev The room ID is caller-chosen and must be unique. Entry fee must be
+    ///      within [MIN_ENTRY_FEE, MAX_ENTRY_FEE]. The room starts at round 1.
+    /// @param roomId A unique identifier for the room.
+    /// @param entryFee The USDm amount each player pays to enter a round.
     function createRoom(uint256 roomId, uint256 entryFee) external {
         if (rooms[roomId].exists) revert RoomAlreadyExists();
         if (entryFee < MIN_ENTRY_FEE || entryFee > MAX_ENTRY_FEE) revert InvalidEntryFee();
@@ -78,6 +142,12 @@ contract GyroBoard is ReentrancyGuard {
         emit RoomCreated(roomId, entryFee);
     }
 
+    /// @notice Submit a spin to an active room for the current round.
+    /// @dev Transfers the entry fee from the caller via safeTransferFrom, records
+    ///      the spin, and auto-finalizes the round when the tenth player joins.
+    ///      Protected by nonReentrant to prevent reentrancy during finalization payouts.
+    /// @param roomId The room to play in (must exist and not be full).
+    /// @param spin The spin value to submit (must be between MIN_SPIN and MAX_SPIN).
     function play(uint256 roomId, uint256 spin) external nonReentrant {
         Room storage room = rooms[roomId];
 
@@ -109,10 +179,18 @@ contract GyroBoard is ReentrancyGuard {
         }
     }
 
+    /// @notice Returns the list of all room IDs that have been created.
+    /// @return An array of room ID values.
     function getRoomIds() external view returns (uint256[] memory) {
         return roomIds;
     }
 
+    /// @notice Returns the player list for a specific round in a room.
+    /// @dev For the current (in-progress) round, only playerCount entries are
+    ///      returned. For completed rounds, all MAX_PLAYERS entries are returned.
+    /// @param roomId The room to query.
+    /// @param round The round number to query.
+    /// @return players An array of Player structs for the requested round.
     function getRoundPlayers(uint256 roomId, uint256 round) external view returns (Player[] memory players) {
         Room memory room = rooms[roomId];
         if (!room.exists) revert RoomDoesNotExist();
@@ -125,6 +203,11 @@ contract GyroBoard is ReentrancyGuard {
         }
     }
 
+    /// @dev Finalizes a completed round by distributing the pot: CREATOR_SHARE %
+    ///      to the creator address and WINNER_SHARE % split equally among all
+    ///      players who submitted the highest spin. Resets room state for the next round.
+    /// @param roomId The room being finalized.
+    /// @param round The round number being finalized.
     function _finalizeRound(uint256 roomId, uint256 round) private {
         Room storage room = rooms[roomId];
         uint256 winnerCount = _countWinners(roomId, round, room.highestSpin);
@@ -153,6 +236,11 @@ contract GyroBoard is ReentrancyGuard {
         room.highestSpin = 0;
     }
 
+    /// @dev Counts how many players in a round submitted a specific spin value.
+    /// @param roomId The room to inspect.
+    /// @param round The round to inspect.
+    /// @param targetSpin The spin value to count.
+    /// @return count The number of players whose spin matches targetSpin.
     function _countWinners(uint256 roomId, uint256 round, uint256 targetSpin) private view returns (uint256 count) {
         for (uint256 i = 0; i < MAX_PLAYERS; i++) {
             if (roundPlayers[roomId][round][i].spin == targetSpin) {
