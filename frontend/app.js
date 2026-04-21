@@ -875,3 +875,4 @@ function runPracticeSpin() {
 // [fee-currency-selector] feature
 // [player-stats] feature
 // [settings-panel] feature
+// [sound-effects] feature
