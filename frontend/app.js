@@ -879,3 +879,4 @@ function runPracticeSpin() {
 // [test-coverage] feature
 // [deploy-scripts] feature
 // [readme-update] feature
+// [ci-workflow] feature
