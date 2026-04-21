@@ -878,3 +878,4 @@ function runPracticeSpin() {
 // [sound-effects] feature
 // [test-coverage] feature
 // [deploy-scripts] feature
+// [readme-update] feature
