@@ -876,3 +876,4 @@ function runPracticeSpin() {
 // [player-stats] feature
 // [settings-panel] feature
 // [sound-effects] feature
+// [test-coverage] feature
