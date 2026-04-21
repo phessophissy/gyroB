@@ -870,3 +870,4 @@ function runPracticeSpin() {
 // [round-history] feature
 // [contract-events] feature
 // [gas-optimisation] feature
+// [accessibility] feature
