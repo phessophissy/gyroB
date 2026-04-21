@@ -1,7 +1,7 @@
 {
   "name": "gyrob",
   "version": "1.0.0",
-  "description": "Gyro Board (GyroB) on Celo with MiniPay support",
+  "description": "Gyro Board (GyroB) on Celo with MiniPay support + minipay-deeplink.",
   "type": "module",
   "scripts": {
     "dev": "vite --host",
@@ -22,7 +22,8 @@
     "minipay",
     "cusd",
     "solidity",
-    "blockchain-game"
+    "blockchain-game",
+    "minipay-deeplink"
   ],
   "license": "MIT",
   "dependencies": {
