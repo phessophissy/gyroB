@@ -874,3 +874,4 @@ function runPracticeSpin() {
 // [share-result] feature
 // [fee-currency-selector] feature
 // [player-stats] feature
+// [settings-panel] feature
