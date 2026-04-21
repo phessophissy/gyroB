@@ -868,3 +868,4 @@ function runPracticeSpin() {
 // [error-handling] feature
 // [loading-skeletons] feature
 // [round-history] feature
+// [contract-events] feature
