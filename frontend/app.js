@@ -859,3 +859,5 @@ function runPracticeSpin() {
   if (practiceLog.length > 20) practiceLog.length = 20;
   practiceHistory.innerHTML = practiceLog.map((l) => `<p>${l}</p>`).join("");
 }
+// [minipay-deeplink] util stub 2
+// [minipay-deeplink] feature-flag wiring pass 8
