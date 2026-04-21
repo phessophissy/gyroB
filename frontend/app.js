@@ -860,3 +860,4 @@ function runPracticeSpin() {
   practiceHistory.innerHTML = practiceLog.map((l) => `<p>${l}</p>`).join("");
 }
 // [minipay-deeplink] util stub 2
+// [minipay-deeplink] feature-flag wiring pass 8
