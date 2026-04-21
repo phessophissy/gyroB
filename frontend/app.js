@@ -872,3 +872,4 @@ function runPracticeSpin() {
 // [gas-optimisation] feature
 // [accessibility] feature
 // [share-result] feature
+// [fee-currency-selector] feature
