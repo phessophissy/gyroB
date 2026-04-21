@@ -866,3 +866,4 @@ function runPracticeSpin() {
 // [dark-mode-toggle] feature
 // [mobile-responsive] feature
 // [error-handling] feature
+// [loading-skeletons] feature
