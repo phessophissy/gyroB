@@ -864,3 +864,4 @@ function runPracticeSpin() {
 // [room-pagination] feature
 // [leaderboard-ui] feature
 // [dark-mode-toggle] feature
+// [mobile-responsive] feature
