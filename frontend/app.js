@@ -877,3 +877,4 @@ function runPracticeSpin() {
 // [settings-panel] feature
 // [sound-effects] feature
 // [test-coverage] feature
+// [deploy-scripts] feature
