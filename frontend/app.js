@@ -863,3 +863,4 @@ function runPracticeSpin() {
 // [minipay-deeplink] feature-flag wiring pass 8
 // [room-pagination] feature
 // [leaderboard-ui] feature
+// [dark-mode-toggle] feature
