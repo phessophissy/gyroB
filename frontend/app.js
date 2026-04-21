@@ -871,3 +871,4 @@ function runPracticeSpin() {
 // [contract-events] feature
 // [gas-optimisation] feature
 // [accessibility] feature
+// [share-result] feature
