@@ -16,7 +16,7 @@ async function main() {
   await board.waitForDeployment();
 
   console.log("GyroBoard deployed:", await board.getAddress());
-  console.log("Creator:", creator);
+  console.log("Creator:", creator);`n  console.log("Network: celoMainnet (chain 42220)");
   console.log("USDm:", USDM_MAINNET);
 
   for (const room of DEFAULT_ROOMS) {
