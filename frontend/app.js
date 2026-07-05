@@ -10,6 +10,7 @@ import {
 } from "./js/config.js";
 import { formatUSDm, parseError, shorten } from "./js/format.js";
 import { roomListSkeleton, setLoading } from "./js/loading.js";
+import { isMiniPayEnvironment, shareMiniPayResult } from "./js/minipay.js";
 import {
   buildPlayerListHtml,
   buildRoomCardHtml,
@@ -542,9 +543,6 @@ function getProvider() {
   return { provider: ethereum, type: "injected" };
 }
 
-function isMiniPayEnvironment() {
-  return Boolean(typeof window !== "undefined" && window.ethereum?.isMiniPay);
-}
 
 async function getWalletClient() {
   const detected = getProvider();
@@ -790,5 +788,5 @@ function finishPracticeSpin() {
   if (practiceLog.length > 15) practiceLog.length = 15;
   practiceHistory.innerHTML = practiceLog.map((l) => `<p>${l}</p>`).join("");
 
-  if (outcome.cls === "win") showToast(`Win! Streak: ${practiceStreakCount}`, "success");
+  if (outcome.cls === "win") { showToast(`Win! Streak: ${practiceStreakCount}`, "success"); if (isMiniPayEnvironment()) void shareMiniPayResult({ roomId: "practice", spin: practiceSelectedSpin, outcome: outcome.text }); }
 }
