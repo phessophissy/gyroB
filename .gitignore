@@ -12,6 +12,11 @@ cache/
 # Sensitive files — never commit
 wallets.json
 generated/
+*.pem
+*.key
+*_private_key*
+secrets/
+deployments/local-*
 
 # OS files
 .DS_Store

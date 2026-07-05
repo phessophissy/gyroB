@@ -192,93 +192,17 @@ MiniPay note:
 - Inside MiniPay, wallet connection is implicit and the app auto-connects on load.
 - On desktop, WalletConnect requires a valid Reown project ID.
 
-## Mainnet Wallet Batches
+## Local Mainnet Operations
 
-GyroB includes local-only tooling to generate mainnet wallets in two batches and run separate contract interaction scripts for each batch.
+Batch wallet tooling exists for **local testing only** and requires private keys in `.env` (never committed). See [docs/local-ops.md](docs/local-ops.md) and [SECURITY.md](SECURITY.md).
 
-Generate wallets:
-
-```bash
-npm run wallets:generate
-```
-
-This creates ignored files in `generated/`:
-
-- `batch-a-mainnet-wallets.json`
-- `batch-b-mainnet-wallets.json`
-- address-only CSV exports for both batches
-
-Fund Batch A:
+Public scripts safe for CI:
 
 ```bash
-FUNDER_ADDRESS=0xyourFunderAddress FUNDER_PRIVATE_KEY=0xyourfunderkey npm run fund:batch-a
+npm run compile
+npm test
+npm run build
 ```
-
-Fund Batch B:
-
-```bash
-FUNDER_ADDRESS=0xyourFunderAddress FUNDER_PRIVATE_KEY=0xyourfunderkey npm run fund:batch-b
-```
-
-Default top-up targets:
-
-- Batch A: `0.05 CELO` and `0.05 USDm` per wallet
-- Batch B: `0.05 CELO` and `5.5 USDm` per wallet
-
-Funding behavior:
-
-- verifies `FUNDER_PRIVATE_KEY` matches `FUNDER_ADDRESS`
-- tops wallets up to the configured balance target instead of blindly resending funds
-- uses native CELO transfers for gas and USDm `transfer()` for token funding
-
-Run Batch A against a room:
-
-```bash
-GYROB_CONTRACT_ADDRESS=0xyourDeployedContract BATCH_A_ROOM_ID=1 npm run interact:batch-a
-```
-
-Run Batch B against a room:
-
-```bash
-GYROB_CONTRACT_ADDRESS=0xyourDeployedContract BATCH_B_ROOM_ID=2 npm run interact:batch-b
-```
-
-Environment used by the batch scripts:
-
-- `CELO_RPC_URL`
-- `GYROB_CONTRACT_ADDRESS`
-- `USDM_ADDRESS`
-- `FUNDER_ADDRESS`
-- `FUNDER_PRIVATE_KEY`
-- `BATCH_A_ROOM_ID`
-- `BATCH_B_ROOM_ID`
-- `BATCH_A_CELO_AMOUNT`
-- `BATCH_A_USDM_AMOUNT`
-- `BATCH_B_CELO_AMOUNT`
-- `BATCH_B_USDM_AMOUNT`
-- `FUNDING_DELAY_MS`
-- `TX_DELAY_MS`
-
-Each batch script:
-
-- loads its own local wallet file
-- checks CELO gas balance and USDm balance
-- submits `approve()` if allowance is below the room fee
-- calls `play(roomId, spin)` for each funded wallet
-- uses deterministic spins from `1-10` across the batch
-
-If your deployed contract has no rooms yet, seed the default tiers first:
-
-```bash
-GYROB_CONTRACT_ADDRESS=0xyourDeployedContract OPERATOR_PRIVATE_KEY=0xyourkey npm run rooms:seed
-```
-
-This creates:
-
-- Room 1: `0.02 USDm`
-- Room 2: `5 USDm`
-- Room 3: `10 USDm`
-- Room 4: `100 USDm`
 
 ## Assumptions
 
