@@ -1,11 +1,13 @@
 {
   "name": "Gyro Board",
   "short_name": "GyroB",
-  "description": "Spin-to-win USDm game on Celo for MiniPay",
+  "description": "Spin-to-win USDm game on Celo — MiniPay Mini App",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a1511",
-  "theme_color": "#0a1511",
+  "orientation": "portrait",
+  "background_color": "#0d0a1f",
+  "theme_color": "#0d0a1f",
+  "categories": ["games", "finance"],
   "icons": [
     {
       "src": "/favicon-32.png",
@@ -15,7 +17,8 @@
     {
       "src": "/favicon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
