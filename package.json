@@ -17,7 +17,8 @@
     "interact:batch-a": "node scripts/interact-batch-a.js",
     "interact:batch-b": "node scripts/interact-batch-b.js",
     "deploy:vercel": "vercel --prod",
-    "test:contracts": "hardhat test test/GyroBoard*.t.js"
+    "test:contracts": "hardhat test test/GyroBoard*.t.js",
+    "build:check": "npm run build"
   },
   "keywords": [
     "celo",
