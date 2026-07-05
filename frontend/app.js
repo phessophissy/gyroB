@@ -1,84 +1,21 @@
-import { createPublicClient, createWalletClient, custom, erc20Abi, formatUnits, getAddress, http } from "viem";
+import { createPublicClient, createWalletClient, custom, erc20Abi, http } from "viem";
 import { celo } from "viem/chains";
-
-const USDM_ADDRESS = getAddress("0x765DE816845861e75A25fCA122bb6898B8B1282a");
-const CONTRACT_ADDRESS = normalizeAddress(import.meta.env.VITE_GYROB_CONTRACT_ADDRESS || "");
-const RPC_URL = normalizeEnvValue(import.meta.env.VITE_CELO_RPC_URL) || "https://forno.celo.org";
-const WALLETCONNECT_PROJECT_ID = normalizeEnvValue(import.meta.env.VITE_WALLETCONNECT_PROJECT_ID) || "";
-const MAX_APPROVAL = 2n ** 256n - 1n;
-
-const ROOM_TIERS = {
-  1n: { label: "Bronze", cls: "bronze" },
-  2n: { label: "Silver", cls: "silver" },
-  3n: { label: "Gold", cls: "gold" },
-  4n: { label: "Diamond", cls: "diamond" },
-};
-
-const AVATAR_COLORS = ["#a882ff", "#ff6bcb", "#4de8ff", "#ffd166", "#5dffa0", "#ff9de0", "#7b9fff", "#ff8b6b", "#c4f0ff", "#ffb347"];
-
-const gyrobAbi = [
-  {
-    type: "function",
-    name: "rooms",
-    stateMutability: "view",
-    inputs: [{ name: "", type: "uint256" }],
-    outputs: [
-      { name: "entryFee", type: "uint256" },
-      { name: "currentRound", type: "uint256" },
-      { name: "playerCount", type: "uint256" },
-      { name: "totalPot", type: "uint256" },
-      { name: "highestSpin", type: "uint256" },
-      { name: "exists", type: "bool" },
-    ],
-  },
-  {
-    type: "function",
-    name: "getRoomIds",
-    stateMutability: "view",
-    inputs: [],
-    outputs: [{ name: "", type: "uint256[]" }],
-  },
-  {
-    type: "function",
-    name: "getRoundPlayers",
-    stateMutability: "view",
-    inputs: [
-      { name: "roomId", type: "uint256" },
-      { name: "round", type: "uint256" },
-    ],
-    outputs: [
-      {
-        name: "players",
-        type: "tuple[]",
-        components: [
-          { name: "player", type: "address" },
-          { name: "spin", type: "uint256" },
-        ],
-      },
-    ],
-  },
-  {
-    type: "function",
-    name: "hasPlayed",
-    stateMutability: "view",
-    inputs: [
-      { name: "", type: "uint256" },
-      { name: "", type: "uint256" },
-      { name: "", type: "address" },
-    ],
-    outputs: [{ name: "", type: "bool" }],
-  },
-  {
-    type: "function",
-    name: "play",
-    stateMutability: "nonpayable",
-    inputs: [
-      { name: "roomId", type: "uint256" },
-      { name: "spin", type: "uint256" },
-    ],
-    outputs: [],
-  },
-];
+import { gyrobAbi } from "./js/abi.js";
+import {
+  CONTRACT_ADDRESS,
+  MAX_APPROVAL,
+  RPC_URL,
+  USDM_ADDRESS,
+  WALLETCONNECT_PROJECT_ID,
+} from "./js/config.js";
+import { formatUSDm, parseError, shorten } from "./js/format.js";
+import {
+  buildPlayerListHtml,
+  buildRoomCardHtml,
+  getRoomTier,
+  renderSeatProgress,
+} from "./js/room-ui.js";
+import { haptic, showToast } from "./js/toast.js";
 
 const publicClient = createPublicClient({
   chain: celo,
@@ -148,18 +85,6 @@ const connectButtons = [connectBtn, sessionConnectBtn].filter(Boolean);
 init();
 initNavigation();
 initPractice();
-
-function normalizeEnvValue(value) {
-  return typeof value === "string" ? value.trim() : "";
-}
-
-function normalizeAddress(value) {
-  const normalizedValue = normalizeEnvValue(value);
-  if (!normalizedValue) {
-    return "";
-  }
-  return getAddress(normalizedValue.toLowerCase());
-}
 
 function init() {
   buildSpinGrid();
@@ -251,20 +176,6 @@ function setPlayStep(step) {
 
 function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
-/* ===== TOASTS & HAPTICS ===== */
-function showToast(message, tone = "") {
-  if (!toastContainer) return;
-  const toast = document.createElement("div");
-  toast.className = `toast ${tone ? `toast--${tone}` : ""}`.trim();
-  toast.textContent = message;
-  toastContainer.appendChild(toast);
-  setTimeout(() => toast.remove(), 3000);
-}
-
-function haptic(ms = 12) {
-  if (navigator.vibrate) navigator.vibrate(ms);
 }
 
 function setWalletConnected(connected) {
@@ -409,22 +320,6 @@ async function syncAccountState() {
   allowanceValue.textContent = `${formatUSDm(allowance)} USDm`;
 }
 
-function renderSeatProgress(playerCount, players = []) {
-  if (!roundProgress) return;
-  const myAddr = state.account?.toLowerCase();
-  roundProgress.innerHTML = Array.from({ length: 10 }, (_, i) => {
-    const filled = i < Number(playerCount);
-    const player = players[i];
-    const isYou = player && myAddr && player.player.toLowerCase() === myAddr;
-    const cls = [filled ? "filled" : "", isYou ? "you" : ""].filter(Boolean).join(" ");
-    return `<div class="seat ${cls}" title="Seat ${i + 1}">${filled ? i + 1 : ""}</div>`;
-  }).join("");
-}
-
-function getRoomTier(roomId) {
-  return ROOM_TIERS[roomId] || { label: "Room", cls: "bronze" };
-}
-
 async function renderSelectedRoom() {
   const room = getSelectedRoom();
   if (!room) {
@@ -435,7 +330,7 @@ async function renderSelectedRoom() {
     summaryHighSpin.textContent = "-";
     summaryPlayed.textContent = "-";
     playerList.innerHTML = '<p class="empty">Select a room first.</p>';
-    renderSeatProgress(0);
+    renderSeatProgress(roundProgress, 0);
     return;
   }
 
@@ -464,30 +359,8 @@ async function renderSelectedRoom() {
     args: [room.roomId, room.currentRound],
   });
 
-  renderSeatProgress(room.playerCount, players);
-
-  if (players.length === 0) {
-    playerList.innerHTML = '<p class="empty">Waiting for players… Be the first!</p>';
-    return;
-  }
-
-  const highSpin = room.highestSpin;
-  playerList.innerHTML = players
-    .map((player, index) => {
-      const color = AVATAR_COLORS[index % AVATAR_COLORS.length];
-      const isLeader = highSpin > 0n && player.spin === highSpin;
-      const isYou = state.account && player.player.toLowerCase() === state.account.toLowerCase();
-      return `
-        <article class="player-item">
-          <div class="player-avatar" style="background:${color}22;color:${color}">${index + 1}</div>
-          <div class="player-info">
-            <code>${isYou ? "You" : shorten(player.player)}</code>
-          </div>
-          <span class="player-spin ${isLeader ? "leader" : ""}">${player.spin}</span>
-        </article>
-      `;
-    })
-    .join("");
+  renderSeatProgress(roundProgress, room.playerCount, players, state.account?.toLowerCase());
+  playerList.innerHTML = buildPlayerListHtml(players, room.highestSpin, state.account);
 }
 
 function renderRooms(rooms) {
@@ -497,40 +370,7 @@ function renderRooms(rooms) {
   }
 
   roomList.innerHTML = rooms
-    .map((room) => {
-      const active = room.roomId === state.selectedRoomId ? "active" : "";
-      const tier = getRoomTier(room.roomId);
-      const fillPct = (Number(room.playerCount) / 10) * 100;
-      return `
-        <button class="room-card ${active}" type="button" data-room-id="${room.roomId}">
-          <span class="room-tier room-tier--${tier.cls}">${tier.label}</span>
-          <h3>Room ${room.roomId}</h3>
-          <div class="room-meta">
-            <div>
-              <span class="metric-label">Entry</span>
-              <strong>${formatUSDm(room.entryFee)} USDm</strong>
-            </div>
-            <div>
-              <span class="metric-label">Pot</span>
-              <strong>${formatUSDm(room.totalPot)}</strong>
-            </div>
-          </div>
-          <div class="room-meta">
-            <div>
-              <span class="metric-label">Round</span>
-              <strong>#${room.currentRound}</strong>
-            </div>
-            <div>
-              <span class="metric-label">Players</span>
-              <strong>${room.playerCount}/10</strong>
-            </div>
-          </div>
-          <div class="room-fill">
-            <div class="room-fill__bar" style="width:${fillPct}%"></div>
-          </div>
-        </button>
-      `;
-    })
+    .map((room) => buildRoomCardHtml(room, state.selectedRoomId))
     .join("");
 
   for (const button of roomList.querySelectorAll("[data-room-id]")) {
@@ -836,24 +676,9 @@ async function switchToCelo(provider) {
   }
 }
 
-function formatUSDm(value) {
-  return Number(formatUnits(value, 18)).toLocaleString(undefined, {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  });
-}
-
-function shorten(value) {
-  return `${value.slice(0, 6)}…${value.slice(-4)}`;
-}
-
 function updateStatus(message, tone = "") {
   statusMessage.textContent = message;
   statusMessage.className = `status-banner ${tone ? `is-${tone}` : ""}`.trim();
-}
-
-function parseError(error) {
-  return error?.shortMessage || error?.message || "Transaction failed.";
 }
 
 /* ===== PRACTICE MODE ===== */
