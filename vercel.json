@@ -1,8 +1,9 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "installCommand": "npm ci",
   "framework": "vite",
   "rewrites": [
-    { "source": "/(.*)", "destination": "/$1" }
+    { "source": "/((?!assets/|favicon|apple-touch|site.webmanifest).*)", "destination": "/index.html" }
   ]
 }

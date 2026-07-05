@@ -15,7 +15,8 @@
     "fund:batch-a": "node scripts/fund-batch-a.js",
     "fund:batch-b": "node scripts/fund-batch-b.js",
     "interact:batch-a": "node scripts/interact-batch-a.js",
-    "interact:batch-b": "node scripts/interact-batch-b.js"
+    "interact:batch-b": "node scripts/interact-batch-b.js",
+    "deploy:vercel": "vercel --prod"
   },
   "keywords": [
     "celo",
