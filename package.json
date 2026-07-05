@@ -16,7 +16,8 @@
     "fund:batch-b": "node scripts/fund-batch-b.js",
     "interact:batch-a": "node scripts/interact-batch-a.js",
     "interact:batch-b": "node scripts/interact-batch-b.js",
-    "deploy:vercel": "vercel --prod"
+    "deploy:vercel": "vercel --prod",
+    "test:contracts": "hardhat test test/GyroBoard*.t.js"
   },
   "keywords": [
     "celo",
