@@ -36,6 +36,8 @@ npm run build
 - Do not change the `1-10` spin range or `10` player round cap unless the spec changes.
 - Preserve room isolation across entry-fee tiers.
 - Avoid committing secrets, funded wallet material, or local `.env` files.
+- Read [SECURITY.md](SECURITY.md) before touching batch wallet scripts or deployment keys.
+- Never commit `generated/`, `*.pem`, `*.key`, or files containing private keys.
 
 ## Pull Requests
 
