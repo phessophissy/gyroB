@@ -218,4 +218,6 @@ Open inside MiniPay for automatic wallet connection. Practice wins can be shared
 
 Frontend-only commits trigger rebuilds via ignoreCommand in vercel.json.
 
+See [docs/architecture.md](docs/architecture.md) for system design.
+
 [![CI](https://github.com/phessophissy/gyroB/actions/workflows/ci.yml/badge.svg)](https://github.com/phessophissy/gyroB/actions/workflows/ci.yml)
