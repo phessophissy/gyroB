@@ -15,6 +15,8 @@
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
+  <a class="skip-link" href="#tabPlay">Skip to play</a>
+  <div id="liveRegion" class="sr-only" aria-live="polite" aria-atomic="true"></div>
   <div class="bg-glow" aria-hidden="true"></div>
   <div class="bg-grid" aria-hidden="true"></div>
 
@@ -63,7 +65,7 @@
         <span class="step-num">1</span>
         <h2>Pick your number</h2>
       </div>
-      <div id="practiceSpinGrid" class="spin-grid spin-grid--glow"></div>
+      <div id="practiceSpinGrid" class="spin-grid spin-grid--glow" role="group" aria-label="Practice spin values 1 to 10"></div>
     </section>
 
     <section class="game-panel">
@@ -152,7 +154,7 @@
         <h2>Choose your spin</h2>
       </div>
       <p class="hint">Higher spin wins. Ties split the 90% winner pool.</p>
-      <div id="spinGrid" class="spin-grid spin-grid--glow"></div>
+      <div id="spinGrid" class="spin-grid spin-grid--glow" role="group" aria-label="Play spin values 1 to 10"></div>
       <div class="spin-selected">
         <span>Selected</span>
         <strong id="selectedSpinLabel">None</strong>
@@ -242,7 +244,7 @@
   </main>
 
   <nav class="bottom-nav" aria-label="Main navigation">
-    <button class="nav-item active" data-tab="practice" type="button">
+    <button class="nav-item active" data-tab="practice" type="button" aria-current="page">
       <span class="nav-icon">🎮</span>
       <span class="nav-label">Practice</span>
     </button>

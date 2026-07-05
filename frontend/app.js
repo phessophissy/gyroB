@@ -85,6 +85,7 @@ const connectButtons = [connectBtn, sessionConnectBtn].filter(Boolean);
 init();
 initNavigation();
 initPractice();
+initAccessibility();
 
 function init() {
   buildSpinGrid();
@@ -142,12 +143,31 @@ function init() {
 }
 
 /* ===== NAVIGATION ===== */
+function initAccessibility() {
+  initSpinGridKeyboard(spinGrid, (spin, button) => {
+    state.selectedSpin = spin;
+    selectedSpinLabel.textContent = spin;
+    for (const b of spinGrid.querySelectorAll(".spin-button")) b.classList.toggle("active", b === button);
+    syncControls();
+    announceLive(`Spin ${spin} selected`);
+  });
+  initSpinGridKeyboard(practiceSpinGrid, (spin, button) => {
+    practiceSelectedSpin = spin;
+    for (const b of practiceSpinGrid.querySelectorAll(".spin-button")) b.classList.toggle("active", b === button);
+    practiceBtn.disabled = false;
+    announceLive(`Practice spin ${spin} selected`);
+  });
+}
+
 function initNavigation() {
   const navItems = document.querySelectorAll(".bottom-nav .nav-item");
   navItems.forEach((item) => {
     item.addEventListener("click", () => {
       const target = item.dataset.tab;
-      navItems.forEach((n) => n.classList.toggle("active", n === item));
+      navItems.forEach((n) => {
+        n.classList.toggle("active", n === item);
+        n.setAttribute("aria-current", n === item ? "page" : "false");
+      });
       document.querySelectorAll(".screen").forEach((screen) => {
         screen.classList.toggle("active", screen.dataset.screen === target);
       });
