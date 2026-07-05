@@ -210,4 +210,8 @@ npm run build
 - `createRoom` is intentionally permissionless because the requested interface specified `external` with no owner gate.
 - Integer division follows Solidity defaults, so any remainder after splitting the winner pool stays in the contract balance.
 
+## MiniPay
+
+Open inside MiniPay for automatic wallet connection. Practice wins can be shared when the Web Share API is available.
+
 [![CI](https://github.com/phessophissy/gyroB/actions/workflows/ci.yml/badge.svg)](https://github.com/phessophissy/gyroB/actions/workflows/ci.yml)
