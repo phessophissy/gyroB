@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0a1511">
+  <meta name="talentapp:project_verification" content="914b9f01fe2447724f35b7fe4692c0aa0a713ef40bff8aa3dfc72aa3a016cc832fa1f9438e2979f5ca9020809bb8a7dda95a200059300bf81d67a088bdd60595">
+  <meta name="description" content="Gyro Board — spin-to-win USDm game on Celo for MiniPay.">
+  <title>GyroB</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <!-- ===== Top bar ===== -->
+  <header class="appbar">
+    <div class="appbar-left">
+      <img src="/favicon.svg" alt="" class="appbar-icon" width="28" height="28">
+      <span class="appbar-title">Gyro Board</span>
+    </div>
+    <strong id="walletAddress" class="appbar-wallet">Not connected</strong>
+  </header>
+
+  <!-- ===== Tab bar ===== -->
+  <nav class="tab-bar">
+    <button class="tab active" data-tab="practice" type="button">Practice</button>
+    <button class="tab" data-tab="play" type="button">Play</button>
+  </nav>
+
+  <!-- ===== Practice tab ===== -->
+  <main id="tabPractice" class="tab-content active">
+    <section class="panel">
+      <p class="kicker">Free Play</p>
+      <h2>Practice Spin</h2>
+      <p class="hint">No USDm needed. Pick your number and spin against the computer.</p>
+    </section>
+
+    <section class="panel">
+      <p class="kicker">Your number</p>
+      <div id="practiceSpinGrid" class="spin-grid"></div>
+    </section>
+
+    <section class="panel">
+      <button id="practiceBtn" class="btn btn-primary btn-full" type="button" disabled>Spin!</button>
+    </section>
+
+    <section id="practiceResult" class="panel result-panel is-hidden">
+      <p class="kicker">Result</p>
+      <div class="result-row">
+        <div class="result-cell">
+          <span class="result-label">You</span>
+          <strong id="practiceYou" class="result-value">-</strong>
+        </div>
+        <div class="result-vs">VS</div>
+        <div class="result-cell">
+          <span class="result-label">Computer</span>
+          <strong id="practiceComp" class="result-value">-</strong>
+        </div>
+      </div>
+      <p id="practiceOutcome" class="result-outcome"></p>
+      <div id="practiceHistory" class="history"></div>
+    </section>
+  </main>
+
+  <!-- ===== Play tab ===== -->
+  <main id="tabPlay" class="tab-content">
+    <!-- wallet status -->
+    <section class="panel compact-grid">
+      <article>
+        <span>USDm</span>
+        <strong id="walletBalance">-</strong>
+      </article>
+      <article>
+        <span>Allowance</span>
+        <strong id="allowanceValue">-</strong>
+      </article>
+    </section>
+
+    <p id="statusMessage" class="status-msg">Connect your wallet to play.</p>
+    <button id="connectBtn" class="btn btn-secondary btn-full" type="button">Connect wallet</button>
+    <button id="sessionConnectBtn" class="btn btn-secondary btn-full is-hidden" type="button">Connect wallet</button>
+
+    <!-- rooms -->
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="kicker">Rooms</p>
+          <h2>Select a room</h2>
+        </div>
+        <button id="refreshBtn" class="btn btn-sm" type="button">Refresh</button>
+      </div>
+      <div id="roomList" class="room-list"></div>
+    </section>
+
+    <!-- spin & play -->
+    <section class="panel">
+      <p class="kicker">Pick your spin</p>
+      <div id="spinGrid" class="spin-grid"></div>
+      <strong id="selectedSpinLabel" class="spin-label">None selected</strong>
+    </section>
+
+    <section class="panel">
+      <p class="kicker">Round summary</p>
+      <dl class="summary">
+        <div><dt>Room</dt><dd id="summaryRoom">-</dd></div>
+        <div><dt>Round</dt><dd id="summaryRound">-</dd></div>
+        <div><dt>Players</dt><dd id="summaryPlayers">-</dd></div>
+        <div><dt>Pot</dt><dd id="summaryPot">-</dd></div>
+        <div><dt>High spin</dt><dd id="summaryHighSpin">-</dd></div>
+        <div><dt>Played?</dt><dd id="summaryPlayed">-</dd></div>
+      </dl>
+    </section>
+
+    <div class="action-row">
+      <button id="approveBtn" class="btn btn-secondary" type="button" disabled>Approve</button>
+      <button id="playBtn" class="btn btn-primary" type="button" disabled>Play</button>
+    </div>
+
+    <!-- players list -->
+    <section class="panel">
+      <p class="kicker">Players this round</p>
+      <div id="playerList" class="player-list">
+        <p class="empty">Select a room first.</p>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

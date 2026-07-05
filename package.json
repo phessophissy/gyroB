@@ -1,0 +1,40 @@
+{
+  "name": "gyrob",
+  "version": "1.0.0",
+  "description": "Gyro Board (GyroB) — spin-to-win USDm game on Celo with MiniPay support.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview --host",
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:celo": "hardhat run scripts/deploy.js --network celoMainnet",
+    "wallets:generate": "node scripts/generate-wallet-batches.js",
+    "rooms:seed": "node scripts/create-default-rooms.js",
+    "fund:batch-a": "node scripts/fund-batch-a.js",
+    "fund:batch-b": "node scripts/fund-batch-b.js",
+    "interact:batch-a": "node scripts/interact-batch-a.js",
+    "interact:batch-b": "node scripts/interact-batch-b.js"
+  },
+  "keywords": [
+    "celo",
+    "minipay",
+    "cusd",
+    "solidity",
+    "blockchain-game"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@walletconnect/ethereum-provider": "^2.23.9",
+    "viem": "^2.23.5"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@openzeppelin/contracts": "^5.2.0",
+    "dotenv": "^16.4.7",
+    "hardhat": "^2.22.18",
+    "playwright": "^1.59.1",
+    "vite": "^5.4.14"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": [
+      "mocha",
+      "node"
+    ]
+  },
+  "include": [
+    "frontend/**/*.js",
+    "scripts/**/*.js",
+    "test/**/*.js",
+    "hardhat.config.js",
+    "vite.config.js"
+  ]
+}
