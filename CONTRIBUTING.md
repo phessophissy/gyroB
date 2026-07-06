@@ -48,3 +48,4 @@ npm run build
 
 - CI runs contract tests and frontend build on every PR.
 - Frontend changes under frontend/ trigger Vercel rebuilds.
+- Read docs/architecture.md before large changes.
