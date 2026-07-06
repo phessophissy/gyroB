@@ -1,6 +1,6 @@
 import { ethers } from "hardhat";
 
-const USDM_MAINNET = "0x765DE816845861e75A25fCA122bb6898B8B1282a";
+import { USDM_MAINNET } from "./lib/addresses.js";
 const DEFAULT_ROOMS = [
   { roomId: 1n, entryFee: ethers.parseUnits("0.02", 18) },
   { roomId: 2n, entryFee: ethers.parseUnits("5", 18) },
@@ -16,7 +16,7 @@ async function main() {
   await board.waitForDeployment();
 
   console.log("GyroBoard deployed:", await board.getAddress());
-  console.log("Creator:", creator);
+  console.log("Creator:", creator);`n  console.log("Network: celoMainnet (chain 42220)");
   console.log("USDm:", USDM_MAINNET);
 
   for (const room of DEFAULT_ROOMS) {
