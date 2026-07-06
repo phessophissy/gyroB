@@ -45,3 +45,5 @@ npm run build
 - Explain gameplay impact clearly.
 - Include validation notes for contract and frontend changes.
 - Prefer screenshots for UI updates.
+
+- CI runs contract tests and frontend build on every PR.

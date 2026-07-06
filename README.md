@@ -209,3 +209,5 @@ npm run build
 - `creator` is fixed at deployment time and receives 10% of every completed round.
 - `createRoom` is intentionally permissionless because the requested interface specified `external` with no owner gate.
 - Integer division follows Solidity defaults, so any remainder after splitting the winner pool stays in the contract balance.
+
+[![CI](https://github.com/phessophissy/gyroB/actions/workflows/ci.yml/badge.svg)](https://github.com/phessophissy/gyroB/actions/workflows/ci.yml)
