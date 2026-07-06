@@ -9,6 +9,7 @@ import {
   WALLETCONNECT_PROJECT_ID,
 } from "./js/config.js";
 import { formatUSDm, parseError, shorten } from "./js/format.js";
+import { roomListSkeleton, setLoading } from "./js/loading.js";
 import {
   buildPlayerListHtml,
   buildRoomCardHtml,
@@ -97,8 +98,15 @@ function init() {
   });
   refreshBtn.addEventListener("click", () => {
     haptic(10);
-    refreshBtn.classList.add("spinning");
-    refreshApp().finally(() => refreshBtn.classList.remove("spinning"));
+    setLoading(refreshBtn, true, "Refreshing");
+    setLoading(roomList, true);
+    roomList.setAttribute("aria-busy", "true");
+    roomList.innerHTML = roomListSkeleton();
+    refreshApp().finally(() => {
+      setLoading(refreshBtn, false);
+      setLoading(roomList, false);
+      roomList.setAttribute("aria-busy", "false");
+    });
   });
   approveBtn.addEventListener("click", approveRoom);
   playBtn.addEventListener("click", playRoom);
@@ -311,6 +319,8 @@ async function refreshApp() {
     syncControls();
   } catch (error) {
     updateStatus(parseError(error), "error");
+    setLoading(roomList, false);
+    roomList.setAttribute("aria-busy", "false");
   }
 }
 

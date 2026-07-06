@@ -698,6 +698,23 @@ button { border: 0; cursor: pointer; background: none; }
 .player-spin.leader { color: var(--gold); }
 .empty { color: var(--muted); font-size: 0.85rem; margin: 0; text-align: center; padding: 12px; }
 
+.is-loading { opacity: 0.6; pointer-events: none; }
+.skeleton-room {
+  padding: 14px; border-radius: 14px; border: 1px solid var(--line);
+  background: var(--panel-strong); margin-bottom: 10px;
+}
+.skeleton-line {
+  height: 12px; border-radius: 6px; margin-bottom: 8px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.1), rgba(255,255,255,0.04));
+  background-size: 200% 100%; animation: shimmer 1.2s infinite;
+}
+.skeleton-line--short { width: 40%; }
+.skeleton-line--medium { width: 70%; }
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 /* ===== GYRO WHEEL ===== */
 .gyro-wheel {
   width: 120px;
