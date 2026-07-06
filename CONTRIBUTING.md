@@ -47,3 +47,4 @@ npm run build
 - Prefer screenshots for UI updates.
 
 - CI runs contract tests and frontend build on every PR.
+- Frontend changes under frontend/ trigger Vercel rebuilds.

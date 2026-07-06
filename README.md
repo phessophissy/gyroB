@@ -214,4 +214,8 @@ npm run build
 
 Open inside MiniPay for automatic wallet connection. Practice wins can be shared when the Web Share API is available.
 
+## Vercel
+
+Frontend-only commits trigger rebuilds via ignoreCommand in vercel.json.
+
 [![CI](https://github.com/phessophissy/gyroB/actions/workflows/ci.yml/badge.svg)](https://github.com/phessophissy/gyroB/actions/workflows/ci.yml)
