@@ -7,7 +7,7 @@
   "orientation": "portrait",
   "background_color": "#0d0a1f",
   "theme_color": "#0d0a1f",
-  "categories": ["games", "finance"],
+  "scope": "/",`n  "prefer_related_applications": false,`n  "categories": ["games", "finance"],
   "icons": [
     {
       "src": "/favicon-32.png",
