@@ -221,3 +221,19 @@ Frontend-only commits trigger rebuilds via ignoreCommand in vercel.json.
 See [docs/architecture.md](docs/architecture.md) for system design.
 
 [![CI](https://github.com/phessophissy/gyroB/actions/workflows/ci.yml/badge.svg)](https://github.com/phessophissy/gyroB/actions/workflows/ci.yml)
+
+## Security
+
+The deployed `GyroBoard` contract was compiled with Solidity `0.8.24`, which
+carries the low-severity compiler advisory
+[SOL-2025-1 (LostStorageArrayWriteOnSlotOverflow)](https://blog.soliditylang.org/2025/12/18/lost-storage-array-write-on-slot-overflow-bug/).
+CeloScan surfaces this as a compiler warning.
+
+The contract is **not affected** by this advisory: its only storage array
+(`roomIds`) sits at storage slot 4 (far from the 2²⁵⁶ wrap-around boundary)
+and is only ever appended to — never deleted, popped, or reassigned — so the
+bug's trigger conditions are not met.
+
+See [`SECURITY.md`](./SECURITY.md) for the full assessment, storage-layout
+analysis, and rationale.
+
