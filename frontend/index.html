@@ -243,6 +243,14 @@
     </section>
   </main>
 
+  <details class="feature-panel" id="notificationsPanel">
+    <summary class="feature-panel__summary"><span aria-hidden="true">🔔</span> Notifications</summary>
+    <div id="notificationsRoot" class="notifications__root"></div>
+  </details>
+  <script type="module">
+    import { initNotifications } from "/js/notifications.js";
+    initNotifications();
+  </script>
   <nav class="bottom-nav" aria-label="Main navigation">
     <button class="nav-item active" data-tab="practice" type="button" aria-current="page">
       <span class="nav-icon">🎮</span>
