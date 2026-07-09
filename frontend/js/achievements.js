@@ -11,6 +11,7 @@ export function initAchievements() {
   state.root = root;
   state.ready = true;
   mountShell(root);
+  loadInitial();
 }
 
 function mountShell(root) {
@@ -23,4 +24,19 @@ function mountShell(root) {
       <p class="empty">Initializing Achievements…</p>
     </div>
   `;
+}
+
+// ---- data layer ----
+function seedItems() {
+  return [
+    { label: "First Spin", value: "unlocked", meta: "1 spin" },
+    { label: "Sharpshooter", value: "locked", meta: "spin 10 ×5" },
+    { label: "High Roller", value: "unlocked", meta: "Room 3 play" },
+    { label: "Streak 5", value: "locked", meta: "5 wins in a row" },
+  ];
+}
+
+function loadInitial() {
+  if (state.items.length) return;
+  state.items = seedItems();
 }
