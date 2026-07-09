@@ -11,6 +11,7 @@ export function initOnboarding() {
   state.root = root;
   state.ready = true;
   mountShell(root);
+  loadInitial();
 }
 
 function mountShell(root) {
@@ -23,4 +24,19 @@ function mountShell(root) {
       <p class="empty">Initializing Onboarding…</p>
     </div>
   `;
+}
+
+// ---- data layer ----
+function seedItems() {
+  return [
+    { label: "Step 1", value: "Pick a spin 1–10", meta: "practice" },
+    { label: "Step 2", value: "Join a USDm room", meta: "play" },
+    { label: "Step 3", value: "Beat the table", meta: "win 90%" },
+    { label: "Step 4", value: "Withdraw winnings", meta: "mini pay" },
+  ];
+}
+
+function loadInitial() {
+  if (state.items.length) return;
+  state.items = seedItems();
 }
