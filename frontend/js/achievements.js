@@ -12,6 +12,7 @@ export function initAchievements() {
   state.ready = true;
   mountShell(root);
   loadInitial();
+  render();
 }
 
 function mountShell(root) {
@@ -39,4 +40,21 @@ function seedItems() {
 function loadInitial() {
   if (state.items.length) return;
   state.items = seedItems();
+}
+
+// ---- render ----
+function render() {
+  const body = state.root && state.root.querySelector('[data-role="body"]');
+  if (!body) return;
+  if (!state.items.length) { body.innerHTML = '<p class="empty">No entries yet.</p>'; return; }
+  body.innerHTML = state.items.map(rowTemplate).join("");
+}
+
+function rowTemplate(it, i) {
+  return `<div class="achievements__row">
+    <span class="achievements__idx">${i + 1}</span>
+    <span class="achievements__label">${it.label}</span>
+    <span class="achievements__meta">${it.meta || ""}</span>
+    <strong class="achievements__value">${it.value}</strong>
+  </div>`;
 }
