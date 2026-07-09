@@ -11,6 +11,7 @@ export function initSpinHistory() {
   state.root = root;
   state.ready = true;
   mountShell(root);
+  loadInitial();
 }
 
 function mountShell(root) {
@@ -23,4 +24,19 @@ function mountShell(root) {
       <p class="empty">Initializing Spin History…</p>
     </div>
   `;
+}
+
+// ---- data layer ----
+function seedItems() {
+  return [
+    { label: "Round #41 · Room 2", value: "+5.0 USDm", meta: "spin 9 · win" },
+    { label: "Round #40 · Room 1", value: "-0.02 USDm", meta: "spin 3 · loss" },
+    { label: "Round #39 · Room 2", value: "+5.0 USDm", meta: "spin 10 · win" },
+    { label: "Round #38 · Room 3", value: "-10 USDm", meta: "spin 4 · loss" },
+  ];
+}
+
+function loadInitial() {
+  if (state.items.length) return;
+  state.items = seedItems();
 }
