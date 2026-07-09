@@ -11,6 +11,7 @@ export function initLeaderboard() {
   state.root = root;
   state.ready = true;
   mountShell(root);
+  loadInitial();
 }
 
 function mountShell(root) {
@@ -23,4 +24,19 @@ function mountShell(root) {
       <p class="empty">Initializing Leaderboard…</p>
     </div>
   `;
+}
+
+// ---- data layer ----
+function seedItems() {
+  return [
+    { label: "0xA1…2f", value: "128.4 USDm", meta: "42 wins" },
+    { label: "0xB2…7c", value: "96.7 USDm", meta: "31 wins" },
+    { label: "0xC3…19", value: "71.2 USDm", meta: "27 wins" },
+    { label: "0xD4…8e", value: "48.0 USDm", meta: "19 wins" },
+  ];
+}
+
+function loadInitial() {
+  if (state.items.length) return;
+  state.items = seedItems();
 }
