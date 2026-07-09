@@ -13,6 +13,7 @@ export function initAchievements() {
   mountShell(root);
   loadInitial();
   render();
+  bindEvents();
 }
 
 function mountShell(root) {
@@ -57,4 +58,28 @@ function rowTemplate(it, i) {
     <span class="achievements__meta">${it.meta || ""}</span>
     <strong class="achievements__value">${it.value}</strong>
   </div>`;
+}
+
+// ---- interactions & domain logic ----
+function countUnlocked() {
+  return state.items.filter((it) => it.value === "unlocked").length;
+}
+
+const actions = {
+  refresh() { loadInitial(); ; render(); persist(); },
+};
+
+function bindEvents() {
+  const body = state.root && state.root.querySelector('[data-role="body"]');
+  body && body.addEventListener("click", onBodyClick);
+  const head = state.root && state.root.querySelector(".achievements__head");
+  if (head) head.insertAdjacentHTML("beforeend",
+    '<button class="achievements__refresh" data-action="refresh" type="button">Refresh</button>');
+}
+
+function onBodyClick(e) {
+  const target = e.target.closest("[data-action]");
+  if (!target) return;
+  const fn = actions[target.dataset.action];
+  if (fn) fn(target, e);
 }
