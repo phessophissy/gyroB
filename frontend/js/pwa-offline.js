@@ -12,6 +12,7 @@ export function initPwaOffline() {
   state.ready = true;
   mountShell(root);
   loadInitial();
+  render();
 }
 
 function mountShell(root) {
@@ -38,4 +39,21 @@ function seedItems() {
 function loadInitial() {
   if (state.items.length) return;
   state.items = seedItems();
+}
+
+// ---- render ----
+function render() {
+  const body = state.root && state.root.querySelector('[data-role="body"]');
+  if (!body) return;
+  if (!state.items.length) { body.innerHTML = '<p class="empty">No entries yet.</p>'; return; }
+  body.innerHTML = state.items.map(rowTemplate).join("");
+}
+
+function rowTemplate(it, i) {
+  return `<div class="pwa-offline__row">
+    <span class="pwa-offline__idx">${i + 1}</span>
+    <span class="pwa-offline__label">${it.label}</span>
+    <span class="pwa-offline__meta">${it.meta || ""}</span>
+    <strong class="pwa-offline__value">${it.value}</strong>
+  </div>`;
 }
