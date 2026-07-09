@@ -243,6 +243,14 @@
     </section>
   </main>
 
+  <details class="feature-panel" id="pwaOfflinePanel">
+    <summary class="feature-panel__summary"><span aria-hidden="true">📲</span> Offline</summary>
+    <div id="pwaOfflineRoot" class="pwa-offline__root"></div>
+  </details>
+  <script type="module">
+    import { initPwaOffline } from "/js/pwa-offline.js";
+    initPwaOffline();
+  </script>
   <nav class="bottom-nav" aria-label="Main navigation">
     <button class="nav-item active" data-tab="practice" type="button" aria-current="page">
       <span class="nav-icon">🎮</span>
