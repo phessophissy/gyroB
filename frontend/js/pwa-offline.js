@@ -11,6 +11,7 @@ export function initPwaOffline() {
   state.root = root;
   state.ready = true;
   mountShell(root);
+  loadInitial();
 }
 
 function mountShell(root) {
@@ -23,4 +24,18 @@ function mountShell(root) {
       <p class="empty">Initializing Offline…</p>
     </div>
   `;
+}
+
+// ---- data layer ----
+function seedItems() {
+  return [
+    { label: "Service worker", value: "registering", meta: "/sw.js" },
+    { label: "Cache", value: "stale", meta: "v1" },
+    { label: "Install prompt", value: "ready", meta: "pwa" },
+  ];
+}
+
+function loadInitial() {
+  if (state.items.length) return;
+  state.items = seedItems();
 }
