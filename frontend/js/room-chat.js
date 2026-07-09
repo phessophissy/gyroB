@@ -11,6 +11,7 @@ export function initRoomChat() {
   state.root = root;
   state.ready = true;
   mountShell(root);
+  loadInitial();
 }
 
 function mountShell(root) {
@@ -23,4 +24,18 @@ function mountShell(root) {
       <p class="empty">Initializing Room Chat…</p>
     </div>
   `;
+}
+
+// ---- data layer ----
+function seedItems() {
+  return [
+    { label: "0xA1…2f", value: "gl hf", meta: "12:01" },
+    { label: "0xB2…7c", value: "room 2 filling up", meta: "12:02" },
+    { label: "0xC3…19", value: "spinning 7", meta: "12:03" },
+  ];
+}
+
+function loadInitial() {
+  if (state.items.length) return;
+  state.items = seedItems();
 }
