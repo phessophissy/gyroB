@@ -13,6 +13,7 @@ export function initI18n() {
   mountShell(root);
   loadInitial();
   render();
+  bindEvents();
 }
 
 function mountShell(root) {
@@ -55,4 +56,29 @@ function rowTemplate(it, i) {
     <span class="i18n__meta">${it.meta || ""}</span>
     <strong class="i18n__value">${it.value}</strong>
   </div>`;
+}
+
+// ---- interactions & domain logic ----
+const STRINGS = { en: { play: "Play", rules: "Rules" }, es: { play: "Jugar", rules: "Reglas" } };
+let locale = "en";
+function t(key) { return (STRINGS[locale] && STRINGS[locale][key]) || key; }
+function setLocale(l) { locale = STRINGS[l] ? l : "en"; }
+
+const actions = {
+  refresh() { loadInitial(); ; render(); persist(); },
+};
+
+function bindEvents() {
+  const body = state.root && state.root.querySelector('[data-role="body"]');
+  body && body.addEventListener("click", onBodyClick);
+  const head = state.root && state.root.querySelector(".i18n__head");
+  if (head) head.insertAdjacentHTML("beforeend",
+    '<button class="i18n__refresh" data-action="refresh" type="button">Refresh</button>');
+}
+
+function onBodyClick(e) {
+  const target = e.target.closest("[data-action]");
+  if (!target) return;
+  const fn = actions[target.dataset.action];
+  if (fn) fn(target, e);
 }
