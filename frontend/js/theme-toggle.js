@@ -11,6 +11,7 @@ export function initThemeToggle() {
   state.root = root;
   state.ready = true;
   mountShell(root);
+  loadInitial();
 }
 
 function mountShell(root) {
@@ -23,4 +24,18 @@ function mountShell(root) {
       <p class="empty">Initializing Theme…</p>
     </div>
   `;
+}
+
+// ---- data layer ----
+function seedItems() {
+  return [
+    { label: "Dark", value: "active", meta: "default" },
+    { label: "Light", value: "switch", meta: "tap to use" },
+    { label: "System", value: "switch", meta: "auto" },
+  ];
+}
+
+function loadInitial() {
+  if (state.items.length) return;
+  state.items = seedItems();
 }
