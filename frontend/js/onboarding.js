@@ -13,6 +13,7 @@ export function initOnboarding() {
   mountShell(root);
   loadInitial();
   render();
+  bindEvents();
 }
 
 function mountShell(root) {
@@ -57,4 +58,28 @@ function rowTemplate(it, i) {
     <span class="onboarding__meta">${it.meta || ""}</span>
     <strong class="onboarding__value">${it.value}</strong>
   </div>`;
+}
+
+// ---- interactions & domain logic ----
+function markSeen() {
+  try { localStorage.setItem("gyrob.onboarding.seen", "1"); } catch (e) { /* ignore */ }
+}
+
+const actions = {
+  refresh() { loadInitial(); ; render(); persist(); },
+};
+
+function bindEvents() {
+  const body = state.root && state.root.querySelector('[data-role="body"]');
+  body && body.addEventListener("click", onBodyClick);
+  const head = state.root && state.root.querySelector(".onboarding__head");
+  if (head) head.insertAdjacentHTML("beforeend",
+    '<button class="onboarding__refresh" data-action="refresh" type="button">Refresh</button>');
+}
+
+function onBodyClick(e) {
+  const target = e.target.closest("[data-action]");
+  if (!target) return;
+  const fn = actions[target.dataset.action];
+  if (fn) fn(target, e);
 }
