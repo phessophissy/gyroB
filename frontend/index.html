@@ -243,6 +243,14 @@
     </section>
   </main>
 
+  <details class="feature-panel" id="onboardingPanel">
+    <summary class="feature-panel__summary"><span aria-hidden="true">🧭</span> Onboarding</summary>
+    <div id="onboardingRoot" class="onboarding__root"></div>
+  </details>
+  <script type="module">
+    import { initOnboarding } from "/js/onboarding.js";
+    initOnboarding();
+  </script>
   <nav class="bottom-nav" aria-label="Main navigation">
     <button class="nav-item active" data-tab="practice" type="button" aria-current="page">
       <span class="nav-icon">🎮</span>
