@@ -958,3 +958,17 @@ button { border: 0; cursor: pointer; background: none; }
     border-radius: 20px 20px 0 0;
   }
 }
+/* RoomChat panel */
+.feature-panel{margin:12px 16px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.feature-panel__summary{padding:12px 14px;cursor:pointer;font-weight:700;list-style:none;display:flex;gap:8px;align-items:center}
+.feature-panel__summary::-webkit-details-marker{display:none}
+.feature-panel[open] .feature-panel__summary{border-bottom:1px solid var(--line)}
+.room-chat__head{display:flex;align-items:center;gap:8px;padding:10px 14px}
+.room-chat__icon{font-size:18px}
+.room-chat__refresh{margin-left:auto;font-size:12px;color:var(--cyan);background:transparent}
+.room-chat__body{padding:4px 0 10px}
+.room-chat__row{display:flex;gap:8px;align-items:center;padding:7px 14px;border-bottom:1px solid var(--line)}
+.room-chat__idx{color:var(--gold);font-weight:700;width:26px}
+.room-chat__label{color:var(--text)}
+.room-chat__meta{color:var(--muted);font-size:12px}
+.room-chat__value{margin-left:auto;color:var(--green)}
