@@ -11,6 +11,7 @@ export function initNetworkStats() {
   state.root = root;
   state.ready = true;
   mountShell(root);
+  loadInitial();
 }
 
 function mountShell(root) {
@@ -23,4 +24,19 @@ function mountShell(root) {
       <p class="empty">Initializing Network Stats…</p>
     </div>
   `;
+}
+
+// ---- data layer ----
+function seedItems() {
+  return [
+    { label: "Rooms live", value: "4", meta: "tiers 1–4" },
+    { label: "Open rounds", value: "3", meta: "awaiting seats" },
+    { label: "Settled today", value: "128", meta: "rounds" },
+    { label: "USDm paid out", value: "1,920", meta: "24h" },
+  ];
+}
+
+function loadInitial() {
+  if (state.items.length) return;
+  state.items = seedItems();
 }
