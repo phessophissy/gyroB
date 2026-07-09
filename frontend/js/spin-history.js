@@ -13,6 +13,7 @@ export function initSpinHistory() {
   mountShell(root);
   loadInitial();
   render();
+  bindEvents();
 }
 
 function mountShell(root) {
@@ -57,4 +58,28 @@ function rowTemplate(it, i) {
     <span class="spin-history__meta">${it.meta || ""}</span>
     <strong class="spin-history__value">${it.value}</strong>
   </div>`;
+}
+
+// ---- interactions & domain logic ----
+function netPnl() {
+  return state.items.reduce((s, it) => s + parseFloat(it.value), 0).toFixed(2);
+}
+
+const actions = {
+  refresh() { loadInitial(); ; render(); persist(); },
+};
+
+function bindEvents() {
+  const body = state.root && state.root.querySelector('[data-role="body"]');
+  body && body.addEventListener("click", onBodyClick);
+  const head = state.root && state.root.querySelector(".spin-history__head");
+  if (head) head.insertAdjacentHTML("beforeend",
+    '<button class="spin-history__refresh" data-action="refresh" type="button">Refresh</button>');
+}
+
+function onBodyClick(e) {
+  const target = e.target.closest("[data-action]");
+  if (!target) return;
+  const fn = actions[target.dataset.action];
+  if (fn) fn(target, e);
 }
