@@ -13,6 +13,7 @@ export function initNetworkStats() {
   mountShell(root);
   loadInitial();
   render();
+  bindEvents();
 }
 
 function mountShell(root) {
@@ -57,4 +58,30 @@ function rowTemplate(it, i) {
     <span class="network-stats__meta">${it.meta || ""}</span>
     <strong class="network-stats__value">${it.value}</strong>
   </div>`;
+}
+
+// ---- interactions & domain logic ----
+function totalPayout() {
+  return state.items
+    .filter((it) => it.label.includes("paid"))
+    .reduce((s, it) => s + parseInt(it.value.replace(/,/g, ""), 10), 0);
+}
+
+const actions = {
+  refresh() { loadInitial(); ; render(); persist(); },
+};
+
+function bindEvents() {
+  const body = state.root && state.root.querySelector('[data-role="body"]');
+  body && body.addEventListener("click", onBodyClick);
+  const head = state.root && state.root.querySelector(".network-stats__head");
+  if (head) head.insertAdjacentHTML("beforeend",
+    '<button class="network-stats__refresh" data-action="refresh" type="button">Refresh</button>');
+}
+
+function onBodyClick(e) {
+  const target = e.target.closest("[data-action]");
+  if (!target) return;
+  const fn = actions[target.dataset.action];
+  if (fn) fn(target, e);
 }
