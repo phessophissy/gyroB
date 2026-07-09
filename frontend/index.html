@@ -243,6 +243,22 @@
     </section>
   </main>
 
+  <details class="feature-panel" id="leaderboardPanel">
+    <summary class="feature-panel__summary"><span aria-hidden="true">🏆</span> Leaderboard</summary>
+    <div id="leaderboardRoot" class="leaderboard__root"></div>
+  </details>
+  <script type="module">
+    import { initLeaderboard } from "/js/leaderboard.js";
+    initLeaderboard();
+  </script>
+  <details class="feature-panel" id="spinHistoryPanel">
+    <summary class="feature-panel__summary"><span aria-hidden="true">🧾</span> Spin History</summary>
+    <div id="spinHistoryRoot" class="spin-history__root"></div>
+  </details>
+  <script type="module">
+    import { initSpinHistory } from "/js/spin-history.js";
+    initSpinHistory();
+  </script>
   <details class="feature-panel" id="roomChatPanel">
     <summary class="feature-panel__summary"><span aria-hidden="true">💬</span> Room Chat</summary>
     <div id="roomChatRoot" class="room-chat__root"></div>

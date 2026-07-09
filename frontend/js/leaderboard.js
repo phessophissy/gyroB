@@ -1,0 +1,99 @@
+// Leaderboard — Top players ranked by total USDm winnings.
+// Self-contained Gyro Board frontend panel module.
+
+const STORAGE_KEY = "gyrob.leaderboard";
+
+const state = { ready: false, items: [], root: null };
+
+export function initLeaderboard() {
+  const root = document.getElementById("leaderboardRoot");
+  if (!root) { console.warn("[Leaderboard] root #leaderboardRoot not found"); return; }
+  state.root = root;
+  state.ready = true;
+  restore();
+  mountShell(root);
+  loadInitial();
+  render();
+  bindEvents();
+  
+}
+
+function mountShell(root) {
+  root.innerHTML = `
+    <div class="leaderboard__head">
+      <span class="leaderboard__icon" aria-hidden="true">🏆</span>
+      <h3>Leaderboard</h3>
+    </div>
+    <div class="leaderboard__body" data-role="body">
+      <p class="empty">Initializing Leaderboard…</p>
+    </div>
+  `;
+}
+
+// ---- data layer ----
+function seedItems() {
+  return [
+    { label: "0xA1…2f", value: "128.4 USDm", meta: "42 wins" },
+    { label: "0xB2…7c", value: "96.7 USDm", meta: "31 wins" },
+    { label: "0xC3…19", value: "71.2 USDm", meta: "27 wins" },
+    { label: "0xD4…8e", value: "48.0 USDm", meta: "19 wins" },
+  ];
+}
+
+function loadInitial() {
+  if (state.items.length) return;
+  state.items = seedItems();
+}
+
+// ---- render ----
+function render() {
+  const body = state.root && state.root.querySelector('[data-role="body"]');
+  if (!body) return;
+  if (!state.items.length) { body.innerHTML = '<p class="empty">No entries yet.</p>'; return; }
+  body.innerHTML = state.items.map(rowTemplate).join("");
+}
+
+function rowTemplate(it, i) {
+  return `<div class="leaderboard__row">
+    <span class="leaderboard__idx">${i + 1}</span>
+    <span class="leaderboard__label">${it.label}</span>
+    <span class="leaderboard__meta">${it.meta || ""}</span>
+    <strong class="leaderboard__value">${it.value}</strong>
+  </div>`;
+}
+
+// ---- interactions & domain logic ----
+function sortByWinnings() {
+  state.items.sort((a, b) => parseFloat(b.value) - parseFloat(a.value));
+}
+
+const actions = {
+  refresh() { loadInitial(); sortByWinnings(); render(); persist(); },
+};
+
+function bindEvents() {
+  const body = state.root && state.root.querySelector('[data-role="body"]');
+  body && body.addEventListener("click", onBodyClick);
+  const head = state.root && state.root.querySelector(".leaderboard__head");
+  if (head) head.insertAdjacentHTML("beforeend",
+    '<button class="leaderboard__refresh" data-action="refresh" type="button">Refresh</button>');
+}
+
+function onBodyClick(e) {
+  const target = e.target.closest("[data-action]");
+  if (!target) return;
+  const fn = actions[target.dataset.action];
+  if (fn) fn(target, e);
+}
+
+// ---- persistence & guards ----
+function persist() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ items: state.items })); }
+  catch (e) { /* ignore quota errors */ }
+}
+function restore() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) state.items = JSON.parse(raw).items || state.items;
+  } catch (e) { /* ignore corrupt cache */ }
+}
