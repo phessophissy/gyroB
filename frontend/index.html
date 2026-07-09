@@ -307,6 +307,14 @@
     import { initNetworkStats } from "/js/network-stats.js";
     initNetworkStats();
   </script>
+  <details class="feature-panel" id="i18nPanel">
+    <summary class="feature-panel__summary"><span aria-hidden="true">🌐</span> Language</summary>
+    <div id="i18nRoot" class="i18n__root"></div>
+  </details>
+  <script type="module">
+    import { initI18n } from "/js/i18n.js";
+    initI18n();
+  </script>
   <nav class="bottom-nav" aria-label="Main navigation">
     <button class="nav-item active" data-tab="practice" type="button" aria-current="page">
       <span class="nav-icon">🎮</span>
