@@ -13,6 +13,7 @@ export function initThemeToggle() {
   mountShell(root);
   loadInitial();
   render();
+  bindEvents();
 }
 
 function mountShell(root) {
@@ -56,4 +57,28 @@ function rowTemplate(it, i) {
     <span class="theme-toggle__meta">${it.meta || ""}</span>
     <strong class="theme-toggle__value">${it.value}</strong>
   </div>`;
+}
+
+// ---- interactions & domain logic ----
+function applyTheme(name) {
+  document.documentElement.setAttribute("data-theme", name);
+}
+
+const actions = {
+  refresh() { loadInitial(); ; render(); persist(); },
+};
+
+function bindEvents() {
+  const body = state.root && state.root.querySelector('[data-role="body"]');
+  body && body.addEventListener("click", onBodyClick);
+  const head = state.root && state.root.querySelector(".theme-toggle__head");
+  if (head) head.insertAdjacentHTML("beforeend",
+    '<button class="theme-toggle__refresh" data-action="refresh" type="button">Refresh</button>');
+}
+
+function onBodyClick(e) {
+  const target = e.target.closest("[data-action]");
+  if (!target) return;
+  const fn = actions[target.dataset.action];
+  if (fn) fn(target, e);
 }
