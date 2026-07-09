@@ -10,10 +10,12 @@ export function initAchievements() {
   if (!root) { console.warn("[Achievements] root #achievementsRoot not found"); return; }
   state.root = root;
   state.ready = true;
+  restore();
   mountShell(root);
   loadInitial();
   render();
   bindEvents();
+  
 }
 
 function mountShell(root) {
@@ -82,4 +84,16 @@ function onBodyClick(e) {
   if (!target) return;
   const fn = actions[target.dataset.action];
   if (fn) fn(target, e);
+}
+
+// ---- persistence & guards ----
+function persist() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ items: state.items })); }
+  catch (e) { /* ignore quota errors */ }
+}
+function restore() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) state.items = JSON.parse(raw).items || state.items;
+  } catch (e) { /* ignore corrupt cache */ }
 }
