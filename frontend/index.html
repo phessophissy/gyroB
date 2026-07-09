@@ -267,6 +267,14 @@
     import { initRoomChat } from "/js/room-chat.js";
     initRoomChat();
   </script>
+  <details class="feature-panel" id="achievementsPanel">
+    <summary class="feature-panel__summary"><span aria-hidden="true">🎖️</span> Achievements</summary>
+    <div id="achievementsRoot" class="achievements__root"></div>
+  </details>
+  <script type="module">
+    import { initAchievements } from "/js/achievements.js";
+    initAchievements();
+  </script>
   <nav class="bottom-nav" aria-label="Main navigation">
     <button class="nav-item active" data-tab="practice" type="button" aria-current="page">
       <span class="nav-icon">🎮</span>
