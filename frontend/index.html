@@ -251,6 +251,14 @@
     import { initLeaderboard } from "/js/leaderboard.js";
     initLeaderboard();
   </script>
+  <details class="feature-panel" id="spinHistoryPanel">
+    <summary class="feature-panel__summary"><span aria-hidden="true">🧾</span> Spin History</summary>
+    <div id="spinHistoryRoot" class="spin-history__root"></div>
+  </details>
+  <script type="module">
+    import { initSpinHistory } from "/js/spin-history.js";
+    initSpinHistory();
+  </script>
   <nav class="bottom-nav" aria-label="Main navigation">
     <button class="nav-item active" data-tab="practice" type="button" aria-current="page">
       <span class="nav-icon">🎮</span>
