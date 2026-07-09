@@ -11,6 +11,7 @@ export function initI18n() {
   state.root = root;
   state.ready = true;
   mountShell(root);
+  loadInitial();
 }
 
 function mountShell(root) {
@@ -23,4 +24,17 @@ function mountShell(root) {
       <p class="empty">Initializing Language…</p>
     </div>
   `;
+}
+
+// ---- data layer ----
+function seedItems() {
+  return [
+    { label: "English", value: "active", meta: "en" },
+    { label: "Español", value: "switch", meta: "es" },
+  ];
+}
+
+function loadInitial() {
+  if (state.items.length) return;
+  state.items = seedItems();
 }
