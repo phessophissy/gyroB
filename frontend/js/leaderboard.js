@@ -13,6 +13,7 @@ export function initLeaderboard() {
   mountShell(root);
   loadInitial();
   render();
+  bindEvents();
 }
 
 function mountShell(root) {
@@ -57,4 +58,28 @@ function rowTemplate(it, i) {
     <span class="leaderboard__meta">${it.meta || ""}</span>
     <strong class="leaderboard__value">${it.value}</strong>
   </div>`;
+}
+
+// ---- interactions & domain logic ----
+function sortByWinnings() {
+  state.items.sort((a, b) => parseFloat(b.value) - parseFloat(a.value));
+}
+
+const actions = {
+  refresh() { loadInitial(); sortByWinnings(); render(); persist(); },
+};
+
+function bindEvents() {
+  const body = state.root && state.root.querySelector('[data-role="body"]');
+  body && body.addEventListener("click", onBodyClick);
+  const head = state.root && state.root.querySelector(".leaderboard__head");
+  if (head) head.insertAdjacentHTML("beforeend",
+    '<button class="leaderboard__refresh" data-action="refresh" type="button">Refresh</button>');
+}
+
+function onBodyClick(e) {
+  const target = e.target.closest("[data-action]");
+  if (!target) return;
+  const fn = actions[target.dataset.action];
+  if (fn) fn(target, e);
 }
