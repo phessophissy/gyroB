@@ -12,6 +12,7 @@ export function initSpinHistory() {
   state.ready = true;
   mountShell(root);
   loadInitial();
+  render();
 }
 
 function mountShell(root) {
@@ -39,4 +40,21 @@ function seedItems() {
 function loadInitial() {
   if (state.items.length) return;
   state.items = seedItems();
+}
+
+// ---- render ----
+function render() {
+  const body = state.root && state.root.querySelector('[data-role="body"]');
+  if (!body) return;
+  if (!state.items.length) { body.innerHTML = '<p class="empty">No entries yet.</p>'; return; }
+  body.innerHTML = state.items.map(rowTemplate).join("");
+}
+
+function rowTemplate(it, i) {
+  return `<div class="spin-history__row">
+    <span class="spin-history__idx">${i + 1}</span>
+    <span class="spin-history__label">${it.label}</span>
+    <span class="spin-history__meta">${it.meta || ""}</span>
+    <strong class="spin-history__value">${it.value}</strong>
+  </div>`;
 }
