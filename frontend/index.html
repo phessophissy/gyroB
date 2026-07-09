@@ -243,6 +243,14 @@
     </section>
   </main>
 
+  <details class="feature-panel" id="leaderboardPanel">
+    <summary class="feature-panel__summary"><span aria-hidden="true">🏆</span> Leaderboard</summary>
+    <div id="leaderboardRoot" class="leaderboard__root"></div>
+  </details>
+  <script type="module">
+    import { initLeaderboard } from "/js/leaderboard.js";
+    initLeaderboard();
+  </script>
   <nav class="bottom-nav" aria-label="Main navigation">
     <button class="nav-item active" data-tab="practice" type="button" aria-current="page">
       <span class="nav-icon">🎮</span>
