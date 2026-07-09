@@ -13,6 +13,7 @@ export function initPwaOffline() {
   mountShell(root);
   loadInitial();
   render();
+  bindEvents();
 }
 
 function mountShell(root) {
@@ -56,4 +57,31 @@ function rowTemplate(it, i) {
     <span class="pwa-offline__meta">${it.meta || ""}</span>
     <strong class="pwa-offline__value">${it.value}</strong>
   </div>`;
+}
+
+// ---- interactions & domain logic ----
+function registerServiceWorker() {
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/sw.js")
+      .catch((e) => console.warn("[PWA] SW reg failed", e));
+  }
+}
+
+const actions = {
+  refresh() { loadInitial(); ; render(); persist(); },
+};
+
+function bindEvents() {
+  const body = state.root && state.root.querySelector('[data-role="body"]');
+  body && body.addEventListener("click", onBodyClick);
+  const head = state.root && state.root.querySelector(".pwa-offline__head");
+  if (head) head.insertAdjacentHTML("beforeend",
+    '<button class="pwa-offline__refresh" data-action="refresh" type="button">Refresh</button>');
+}
+
+function onBodyClick(e) {
+  const target = e.target.closest("[data-action]");
+  if (!target) return;
+  const fn = actions[target.dataset.action];
+  if (fn) fn(target, e);
 }
