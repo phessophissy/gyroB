@@ -243,6 +243,14 @@
     </section>
   </main>
 
+  <details class="feature-panel" id="themeTogglePanel">
+    <summary class="feature-panel__summary"><span aria-hidden="true">🌗</span> Theme</summary>
+    <div id="themeToggleRoot" class="theme-toggle__root"></div>
+  </details>
+  <script type="module">
+    import { initThemeToggle } from "/js/theme-toggle.js";
+    initThemeToggle();
+  </script>
   <nav class="bottom-nav" aria-label="Main navigation">
     <button class="nav-item active" data-tab="practice" type="button" aria-current="page">
       <span class="nav-icon">🎮</span>
