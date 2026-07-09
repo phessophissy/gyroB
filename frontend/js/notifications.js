@@ -11,6 +11,7 @@ export function initNotifications() {
   state.root = root;
   state.ready = true;
   mountShell(root);
+  loadInitial();
 }
 
 function mountShell(root) {
@@ -23,4 +24,18 @@ function mountShell(root) {
       <p class="empty">Initializing Notifications…</p>
     </div>
   `;
+}
+
+// ---- data layer ----
+function seedItems() {
+  return [
+    { label: "Round settled", value: "You won 5 USDm", meta: "2m ago" },
+    { label: "Room 2", value: "9/10 seats filled", meta: "5m ago" },
+    { label: "Welcome", value: "Connect to play", meta: "now" },
+  ];
+}
+
+function loadInitial() {
+  if (state.items.length) return;
+  state.items = seedItems();
 }
