@@ -1,0 +1,9 @@
+# https://docs.github.com/communities/using-templates-to-encourage-useful-issues-and-pull-requests/configuring-issue-templates-for-your-repository
+blank_issues_enabled: false
+contact_links:
+  - name: Security report
+    url: https://github.com/phessophissy/gyroB/security/policy
+    about: Found a security issue? Read SECURITY.md — do not open a public issue.
+  - name: Discussions & support
+    url: https://github.com/phessophissy/gyroB/discussions
+    about: Questions about gameplay, MiniPay integration, or the SDK belong in Discussions.
