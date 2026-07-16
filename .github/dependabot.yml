@@ -1,0 +1,44 @@
+# Dependabot keeps production dependencies and GitHub Actions up to date.
+# See https://docs.github.com/code-security/dependabot/dependabot-version-updates
+
+version: 2
+updates:
+  # npm dependencies for the GyroBoard app (contracts + frontend)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    groups:
+      openzeppelin:
+        patterns:
+          - "@openzeppelin/*"
+      hardhat:
+        patterns:
+          - "hardhat"
+          - "@nomicfoundation/*"
+      viem:
+        patterns:
+          - "viem"
+          - "@walletconnect/*"
+          - "@reown/*"
+    ignore:
+      # Hardhat + OpenZeppelin contracts are pinned for on-chain bytecode
+      # reproducibility; bumps must be reviewed against the deployed contract.
+      - dependency-name: "hardhat"
+      - dependency-name: "@openzeppelin/contracts"
+
+  # GitHub Actions used in CI workflows
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(ci-deps)"
+      include: "scope"
