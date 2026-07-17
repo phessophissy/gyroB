@@ -29,8 +29,8 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@walletconnect/ethereum-provider": "^2.23.9",
-    "viem": "^2.23.5"
+    "@walletconnect/ethereum-provider": "^2.23.10",
+    "viem": "^2.55.2"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^7.0.0",
