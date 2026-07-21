@@ -134,3 +134,39 @@ Returns the player list for a specific round. For the current
 (in-progress) round only `playerCount` entries are returned; for
 completed rounds all `MAX_PLAYERS` entries are returned. Reverts with
 `RoomDoesNotExist()` if the room does not exist.
+
+---
+
+## Frontend Modules
+
+### `frontend/js/format.js`
+
+| Export | Signature | Description |
+|--------|-----------|-------------|
+| `formatUSDm` | `(value: bigint) => string` | Formats a wei USDm amount to a localized string (0–2 decimals). |
+| `shorten` | `(value: string) => string` | Truncates an address to `0x1234…abcd` form. |
+| `parseError` | `(error: Error) => string` | Extracts a human-readable message from a viem error. |
+
+### `frontend/js/config.js`
+
+| Export | Description |
+|--------|-------------|
+| `USDM_ADDRESS` | The USDm ERC-20 contract address. |
+| `CONTRACT_ADDRESS` | The GyroBoard contract address (from `VITE_GYROB_CONTRACT_ADDRESS`). |
+| `RPC_URL` | Celo RPC URL (defaults to `https://forno.celo.org`). |
+| `WALLETCONNECT_PROJECT_ID` | WalletConnect project id env value. |
+| `MAX_APPROVAL` | `2^256 - 1` max uint256 approval value. |
+| `ROOM_TIERS` | Map of room id → `{ label, cls }` tier metadata. |
+| `AVATAR_COLORS` | Array of avatar color hex values. |
+
+### `frontend/js/validation.js`
+
+See [`docs/bet-validation.md`](./bet-validation.md) for full details.
+Exports `MIN_SPIN`, `MAX_SPIN`, `MIN_ENTRY_FEE`, `MAX_ENTRY_FEE`,
+`validateSpin`, `validateAffordability`, and `validatePlay`.
+
+### `frontend/js/sound.js`
+
+See [`docs/sound-effects.md`](./sound-effects.md) for full details.
+Exports `isSoundEnabled`, `setSoundEnabled`, `toggleSound`, `playSpin`,
+`playWin`, `playLose`, and `playClick`.
