@@ -34,6 +34,8 @@ const state = {
   walletConnectProvider: null,
   isConnecting: false,
   playStep: "rooms",
+  balance: null,
+  allowance: null,
 };
 
 const walletConnectProviders = new WeakSet();
@@ -327,6 +329,8 @@ async function refreshApp() {
 
 async function syncAccountState() {
   if (!state.account || !state.selectedRoomId) {
+    state.balance = null;
+    state.allowance = null;
     walletBalance.textContent = "-";
     allowanceValue.textContent = "-";
     return;
@@ -347,8 +351,11 @@ async function syncAccountState() {
     }),
   ]);
 
+  state.balance = balance;
+  state.allowance = allowance;
   walletBalance.textContent = `${formatUSDm(balance)} USDm`;
   allowanceValue.textContent = `${formatUSDm(allowance)} USDm`;
+  syncControls();
 }
 
 async function renderSelectedRoom() {
