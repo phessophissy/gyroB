@@ -48,6 +48,16 @@ test/
 hardhat.config.js
 ```
 
+## Documentation
+
+Detailed guides live in [`docs/`](docs/):
+
+- [API Reference](docs/api-reference.md) — contract & frontend module API
+- [Architecture](docs/architecture.md)
+- [Bet Validation](docs/bet-validation.md)
+- [Sound Effects](docs/sound-effects.md)
+- [Local Operations](docs/local-ops.md)
+
 ## Contract Overview
 
 `GyroBoard.sol` stores an independent `Room` state for each `roomId`:
