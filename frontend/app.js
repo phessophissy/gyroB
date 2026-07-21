@@ -9,6 +9,7 @@ import {
   WALLETCONNECT_PROJECT_ID,
 } from "./js/config.js";
 import { formatUSDm, parseError, shorten } from "./js/format.js";
+import { validateAffordability } from "./js/validation.js";
 import { roomListSkeleton, setLoading } from "./js/loading.js";
 import { isMiniPayEnvironment, shareMiniPayResult } from "./js/minipay.js";
 import {
@@ -516,11 +517,19 @@ async function playRoom() {
 
 function syncControls() {
   const hasWallet = Boolean(state.account);
-  const hasRoom = Boolean(getSelectedRoom());
+  const room = getSelectedRoom();
+  const hasRoom = Boolean(room);
   const hasSpin = Boolean(state.selectedSpin);
 
+  const canAfford =
+    hasWallet &&
+    hasRoom &&
+    state.balance != null &&
+    state.allowance != null &&
+    validateAffordability(room.entryFee, state.balance, state.allowance).ok;
+
   approveBtn.disabled = !hasWallet || !hasRoom || !CONTRACT_ADDRESS;
-  playBtn.disabled = !hasWallet || !hasRoom || !hasSpin || !CONTRACT_ADDRESS;
+  playBtn.disabled = !hasWallet || !hasRoom || !hasSpin || !CONTRACT_ADDRESS || !canAfford;
 
   if (hasRoom && hasSpin && hasWallet) setPlayStep("play");
   else if (hasRoom) setPlayStep(state.selectedSpin ? "play" : "spin");
