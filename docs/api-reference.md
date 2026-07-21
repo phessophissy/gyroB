@@ -53,3 +53,38 @@ highest-spin winner(s) and 10 % to the game creator.
 |-------|------|-------------|
 | `player` | `address` | Wallet address of the participant. |
 | `spin` | `uint256` | Chosen spin value (`MIN_SPIN..MAX_SPIN`). |
+
+### Storage Mappings
+
+| Mapping | Key Path | Value | Description |
+|---------|----------|-------|-------------|
+| `rooms` | `uint256 roomId` | `Room` | Lookup table of all rooms. |
+| `playerSpins` | `roomId → round → address` | `uint256` | Spin value a player submitted. |
+| `hasPlayed` | `roomId → round → address` | `bool` | Whether a player already joined a round. |
+| `roundPlayers` | `roomId → round → index` | `Player` | Ordered list of players in a round. |
+
+### Errors
+
+| Error | Triggered when |
+|-------|----------------|
+| `RoomAlreadyExists()` | Creating a room with an existing ID. |
+| `RoomDoesNotExist()` | Interacting with an uncreated roomId. |
+| `InvalidEntryFee()` | Entry fee outside `[MIN_ENTRY_FEE, MAX_ENTRY_FEE]`. |
+| `RoundFull()` | Joining a round that already has `MAX_PLAYERS`. |
+| `InvalidSpin()` | Spin outside `[MIN_SPIN, MAX_SPIN]`. |
+| `AlreadyPlayed()` | A player joins the same room+round twice. |
+| `NoWinners()` | Finalization finds no matching highest spin (unreachable). |
+
+### Events
+
+#### `RoomCreated(uint256 roomId, uint256 entryFee)`
+Emitted when a new room is created.
+
+#### `Played(address indexed player, uint256 roomId, uint256 round, uint256 spin)`
+Emitted each time a player submits a spin.
+
+#### `RoundCompleted(uint256 roomId, uint256 round, uint256 highestSpin, uint256 winnerCount)`
+Emitted when a round auto-finalizes after the tenth player.
+
+#### `Payout(address indexed recipient, uint256 amount, uint256 roomId)`
+Emitted for each payout transfer (winners and creator).
