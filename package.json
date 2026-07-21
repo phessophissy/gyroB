@@ -19,6 +19,8 @@
     "deploy:vercel": "vercel --prod",
     "test:contracts": "hardhat test test/GyroBoard*.t.js",
     "test:format": "node --import ./test/stubs/viem-loader.js --test test/format-helpers.test.js",
+    "lint": "eslint frontend scripts test eslint.config.js",
+    "lint:fix": "eslint --fix frontend scripts test eslint.config.js",
     "build:check": "npm run build"
   },
   "keywords": [
@@ -34,9 +36,12 @@
     "viem": "^2.55.4"
   },
   "devDependencies": {
+    "@eslint/js": "^9.0.0",
     "@nomicfoundation/hardhat-toolbox": "^7.0.0",
     "@openzeppelin/contracts": "^5.2.0",
     "dotenv": "^17.4.2",
+    "eslint": "^9.0.0",
+    "globals": "^15.0.0",
     "hardhat": "^2.22.18",
     "vite": "^8.1.5"
   }
