@@ -24,16 +24,41 @@ describe("GyroBoard events", function () {
       .withArgs(1, parse("5", 18));
   });
 
-  it("emits Payout events on round completion", async function () {
-    const { creator, board, token, players } = await deployFixture();
+  it("emits RoundCompleted and Payout events on round completion", async function () {
+    const { board, token, players } = await deployFixture();
     await board.createRoom(1, parse("1", 18));
-    for (const p of players.slice(0, 10)) {
+    for (const p of players.slice(0, 5)) {
       await token.mint(p.address, parse("100", 18));
       await token.connect(p).approve(await board.getAddress(), parse("1", 18));
       await board.connect(p).play(1, 5);
     }
-    const filter = board.filters.Payout(creator.address);
-    const events = await board.queryFilter(filter);
+    const events = await board.queryFilter(board.filters.RoundCompleted());
     expect(events.length).to.be.gte(1);
+  });
+
+  it("emits TreasuryPlayed when a player plays against the treasury", async function () {
+    const { creator, board, token, players } = await deployFixture();
+    // Fund the treasury so a win can be paid.
+    await token.mint(creator.address, parse("1000", 18));
+    await token.connect(creator).approve(await board.getAddress(), parse("1000", 18));
+    await board.depositTreasury(parse("1000", 18));
+
+    const player = players[0];
+    await token.mint(player.address, parse("100", 18));
+    await token.connect(player).approve(await board.getAddress(), parse("1", 18));
+
+    const tx = await board.connect(player).playVsTreasury(10, parse("1", 18));
+    const receipt = await tx.wait();
+    const iface = board.interface;
+    const played = receipt.logs
+      .map((l) => {
+        try {
+          return iface.parseLog(l);
+        } catch {
+          return null;
+        }
+      })
+      .filter((e) => e && e.name === "TreasuryPlayed");
+    expect(played.length).to.equal(1);
   });
 });

@@ -10,6 +10,14 @@ import {
 } from "./js/config.js";
 import { formatUSDm, parseError, shorten } from "./js/format.js";
 import {
+  validatePlay,
+  validateAffordability,
+  validateTreasuryPlay,
+  MIN_PLAYERS,
+  MAX_PLAYERS,
+  TREASURY_WIN_SHARE,
+} from "./js/validation.js";
+import {
   isSoundEnabled,
   toggleSound,
   playClick,
@@ -44,6 +52,11 @@ const state = {
   playStep: "rooms",
   balance: null,
   allowance: null,
+  // Treasury mode state
+  mode: "treasury", // "treasury" | "players"
+  treasuryBalance: null,
+  treasurySelectedSpin: null,
+  treasuryStake: null,
 };
 
 const walletConnectProviders = new WeakSet();
@@ -63,6 +76,19 @@ const walletDot = document.getElementById("walletDot");
 const minipayBadge = document.getElementById("minipayBadge");
 const toastContainer = document.getElementById("toastContainer");
 const roundProgress = document.getElementById("roundProgress");
+
+// Treasury mode elements
+const treasuryPanel = document.getElementById("treasuryPanel");
+const playersPanel = document.getElementById("playersPanel");
+const treasurySpinGrid = document.getElementById("treasurySpinGrid");
+const treasurySelectedSpinLabel = document.getElementById("treasurySelectedSpinLabel");
+const treasuryStakeInput = document.getElementById("treasuryStakeInput");
+const treasuryApproveBtn = document.getElementById("treasuryApproveBtn");
+const treasuryPlayBtn = document.getElementById("treasuryPlayBtn");
+const treasuryResult = document.getElementById("treasuryResult");
+const treasuryBalanceValue = document.getElementById("treasuryBalanceValue");
+const finalizeEarlyBtn = document.getElementById("finalizeEarlyBtn");
+const modeToggleBtns = document.querySelectorAll(".mode-toggle__btn");
 
 const practiceSpinGrid = document.getElementById("practiceSpinGrid");
 const practiceBtn = document.getElementById("practiceBtn");
@@ -112,7 +138,9 @@ function initSoundToggle() {
 
 function init() {
   buildSpinGrid();
+  buildTreasurySpinGrid();
   initSoundToggle();
+  initModeToggle();
   for (const button of connectButtons) {
     button.addEventListener("click", connectWallet);
   }
@@ -133,6 +161,14 @@ function init() {
   });
   approveBtn.addEventListener("click", approveRoom);
   playBtn.addEventListener("click", playRoom);
+  treasuryApproveBtn?.addEventListener("click", approveTreasury);
+  treasuryPlayBtn?.addEventListener("click", playVsTreasury);
+  finalizeEarlyBtn?.addEventListener("click", finalizeRoundEarly);
+  treasuryStakeInput?.addEventListener("input", () => {
+    const parsed = parseStakeInput(treasuryStakeInput.value);
+    state.treasuryStake = parsed;
+    syncTreasuryControls();
+  });
 
   const detected = getProvider();
   state.provider = null;
@@ -337,6 +373,7 @@ async function refreshApp() {
     }
 
     renderRooms(rooms);
+    await syncTreasuryBalance();
     await syncAccountState();
     await renderSelectedRoom();
     syncControls();
@@ -348,15 +385,16 @@ async function refreshApp() {
 }
 
 async function syncAccountState() {
-  if (!state.account || !state.selectedRoomId) {
+  if (!state.account) {
     state.balance = null;
     state.allowance = null;
     walletBalance.textContent = "-";
     allowanceValue.textContent = "-";
+    syncTreasuryControls();
     return;
   }
 
-  const [balance, allowance] = await Promise.all([
+  const reads = [
     publicClient.readContract({
       address: USDM_ADDRESS,
       abi: erc20Abi,
@@ -369,13 +407,33 @@ async function syncAccountState() {
       functionName: "allowance",
       args: [state.account, CONTRACT_ADDRESS],
     }),
-  ]);
+  ];
+
+  // Fetch treasury balance in parallel (independent of room selection).
+  if (CONTRACT_ADDRESS) {
+    reads.push(
+      publicClient.readContract({
+        address: CONTRACT_ADDRESS,
+        abi: gyrobAbi,
+        functionName: "treasuryBalance",
+      }),
+    );
+  }
+
+  const results = await Promise.all(reads);
+  const [balance, allowance, treasury] = results;
 
   state.balance = balance;
   state.allowance = allowance;
+  if (treasury != null) {
+    state.treasuryBalance = treasury;
+    treasuryBalanceValue.textContent = `${formatUSDm(treasury)} USDm`;
+  }
+
   walletBalance.textContent = `${formatUSDm(balance)} USDm`;
   allowanceValue.textContent = `${formatUSDm(allowance)} USDm`;
   syncControls();
+  syncTreasuryControls();
 }
 
 async function renderSelectedRoom() {
@@ -395,7 +453,7 @@ async function renderSelectedRoom() {
   const tier = getRoomTier(room.roomId);
   summaryRoom.textContent = `${tier.label} • ${formatUSDm(room.entryFee)} USDm`;
   summaryRound.textContent = room.currentRound.toString();
-  summaryPlayers.textContent = `${room.playerCount}/10`;
+  summaryPlayers.textContent = `${room.playerCount}/${MAX_PLAYERS}`;
   summaryPot.textContent = `${formatUSDm(room.totalPot)} USDm`;
   summaryHighSpin.textContent = room.highestSpin === 0n ? "—" : room.highestSpin.toString();
 
@@ -464,6 +522,254 @@ function buildSpinGrid() {
       syncControls();
       setPlayStep("play");
     });
+  }
+}
+
+function buildTreasurySpinGrid() {
+  if (!treasurySpinGrid) return;
+  treasurySpinGrid.innerHTML = Array.from({ length: 10 }, (_, index) => {
+    const spin = index + 1;
+    return `<button class="spin-button" data-treasury-spin="${spin}" type="button">${spin}</button>`;
+  }).join("");
+
+  for (const button of treasurySpinGrid.querySelectorAll("[data-treasury-spin]")) {
+    button.addEventListener("click", () => {
+      state.treasurySelectedSpin = Number(button.dataset.treasurySpin);
+      treasurySelectedSpinLabel.textContent = state.treasurySelectedSpin;
+
+      for (const spinButton of treasurySpinGrid.querySelectorAll(".spin-button")) {
+        spinButton.classList.toggle("active", spinButton === button);
+      }
+
+      haptic(8);
+      syncTreasuryControls();
+    });
+  }
+}
+
+function initModeToggle() {
+  for (const btn of modeToggleBtns) {
+    btn.addEventListener("click", () => {
+      const mode = btn.dataset.mode;
+      state.mode = mode;
+      for (const b of modeToggleBtns) {
+        b.classList.toggle("active", b === btn);
+      }
+      const showTreasury = mode === "treasury";
+      treasuryPanel?.classList.toggle("active", showTreasury);
+      playersPanel?.classList.toggle("active", !showTreasury);
+      haptic(10);
+      syncTreasuryControls();
+      syncControls();
+    });
+  }
+}
+
+function parseStakeInput(value) {
+  if (value == null || value === "") return null;
+  const num = Number(value);
+  if (!Number.isFinite(num) || num <= 0) return null;
+  // Convert USDm (human) to wei (18 decimals).
+  return BigInt(Math.round(num * 1e18));
+}
+
+function syncTreasuryControls() {
+  const hasWallet = Boolean(state.account);
+  const hasSpin = Boolean(state.treasurySelectedSpin);
+  const stake = state.treasuryStake;
+
+  const canAfford =
+    hasWallet &&
+    stake != null &&
+    state.balance != null &&
+    state.allowance != null &&
+    state.treasuryBalance != null &&
+    validateTreasuryPlay({
+      spin: state.treasurySelectedSpin ?? 0,
+      stake,
+      balance: state.balance,
+      allowance: state.allowance,
+      treasuryBalance: state.treasuryBalance,
+    }).ok;
+
+  if (treasuryApproveBtn) {
+    treasuryApproveBtn.disabled = !hasWallet || !stake || !CONTRACT_ADDRESS;
+  }
+  if (treasuryPlayBtn) {
+    treasuryPlayBtn.disabled = !hasWallet || !hasSpin || !stake || !CONTRACT_ADDRESS || !canAfford;
+  }
+}
+
+async function syncTreasuryBalance() {
+  if (!CONTRACT_ADDRESS) {
+    treasuryBalanceValue.textContent = "-";
+    return;
+  }
+  try {
+    const balance = await publicClient.readContract({
+      address: CONTRACT_ADDRESS,
+      abi: gyrobAbi,
+      functionName: "treasuryBalance",
+    });
+    state.treasuryBalance = balance;
+    treasuryBalanceValue.textContent = `${formatUSDm(balance)} USDm`;
+  } catch {
+    treasuryBalanceValue.textContent = "-";
+  }
+}
+
+async function approveTreasury() {
+  const stake = state.treasuryStake;
+  if (!stake || !state.account) return;
+
+  try {
+    treasuryApproveBtn.disabled = true;
+    updateStatus("Submitting approval…", "success");
+    const walletClient = await getWalletClient();
+    const { request } = await publicClient.simulateContract({
+      address: USDM_ADDRESS,
+      abi: erc20Abi,
+      functionName: "approve",
+      args: [CONTRACT_ADDRESS, MAX_APPROVAL],
+      account: state.account,
+    });
+
+    const hash = await walletClient.writeContract(request);
+    updateStatus("Waiting for approval confirmation…", "success");
+    await publicClient.waitForTransactionReceipt({ hash });
+    updateStatus("USDm approved! Ready to spin.", "success");
+    showToast("USDm approved", "success");
+    haptic(25);
+    await syncAccountState();
+    syncTreasuryControls();
+  } catch (error) {
+    updateStatus(parseError(error), "error");
+    showToast(parseError(error), "error");
+  } finally {
+    syncTreasuryControls();
+  }
+}
+
+async function playVsTreasury() {
+  const spin = state.treasurySelectedSpin;
+  const stake = state.treasuryStake;
+  if (!spin || !stake || !state.account) return;
+
+  const check = validateTreasuryPlay({
+    spin,
+    stake,
+    balance: state.balance ?? 0n,
+    allowance: state.allowance ?? 0n,
+    treasuryBalance: state.treasuryBalance ?? 0n,
+  });
+  if (!check.ok) {
+    updateStatus(check.error, "error");
+    showToast(check.error, "error");
+    return;
+  }
+
+  try {
+    treasuryPlayBtn.disabled = true;
+    treasuryResult.classList.add("is-hidden");
+    playSpin();
+    updateStatus(`Submitting spin ${spin} vs treasury…`, "success");
+    const walletClient = await getWalletClient();
+    const { request } = await publicClient.simulateContract({
+      address: CONTRACT_ADDRESS,
+      abi: gyrobAbi,
+      functionName: "playVsTreasury",
+      args: [BigInt(spin), stake],
+      account: state.account,
+    });
+
+    const hash = await walletClient.writeContract(request);
+    updateStatus("Waiting for confirmation…", "success");
+    const receipt = await publicClient.waitForTransactionReceipt({ hash });
+
+    // Parse the TreasuryPlayed event from the receipt to reveal the result.
+    const logs = receipt.logs || [];
+    let won = null;
+    let treasurySpin = null;
+    let payout = 0n;
+    for (const log of logs) {
+      try {
+        const decoded = publicClient.decodeEventLog({
+          abi: gyrobAbi,
+          data: log.data,
+          topics: log.topics,
+        });
+        if (decoded.eventName === "TreasuryPlayed") {
+          won = decoded.args.won;
+          treasurySpin = decoded.args.treasurySpin;
+          payout = decoded.args.payout;
+        }
+      } catch {
+        // not a TreasuryPlayed log
+      }
+    }
+
+    if (won === true) {
+      const total = stake + payout;
+      treasuryResult.innerHTML = `<div class="treasury-result__win">🎉 You won! Treasury spun <strong>${treasurySpin}</strong>, you spun <strong>${spin}</strong>. Payout: <strong>${formatUSDm(total)} USDm</strong> (stake + 70%).</div>`;
+      updateStatus(`Win! Treasury spun ${treasurySpin}, you spun ${spin}.`, "success");
+      showToast("You beat the treasury!", "success");
+      playWin();
+      haptic([20, 40, 20]);
+    } else if (won === false) {
+      treasuryResult.innerHTML = `<div class="treasury-result__lose">💀 You lost. Treasury spun <strong>${treasurySpin}</strong>, you spun <strong>${spin}</strong>. Your stake of ${formatUSDm(stake)} USDm went to the vault.</div>`;
+      updateStatus(`Lost. Treasury spun ${treasurySpin}, you spun ${spin}.`, "error");
+      showToast("Treasury won this round", "error");
+      playLose();
+    } else {
+      treasuryResult.innerHTML = `<div>Spin confirmed. Check your transaction for details.</div>`;
+      updateStatus("Treasury spin confirmed.", "success");
+    }
+    treasuryResult.classList.remove("is-hidden");
+
+    state.treasurySelectedSpin = null;
+    treasurySelectedSpinLabel.textContent = "None";
+    for (const btn of treasurySpinGrid.querySelectorAll(".spin-button")) btn.classList.remove("active");
+
+    await syncAccountState();
+    await syncTreasuryBalance();
+  } catch (error) {
+    updateStatus(parseError(error), "error");
+    playLose();
+    showToast(parseError(error), "error");
+  } finally {
+    syncTreasuryControls();
+  }
+}
+
+async function finalizeRoundEarly() {
+  const room = getSelectedRoom();
+  if (!room || !state.account) return;
+
+  try {
+    finalizeEarlyBtn.disabled = true;
+    updateStatus("Finalizing round early…", "success");
+    const walletClient = await getWalletClient();
+    const { request } = await publicClient.simulateContract({
+      address: CONTRACT_ADDRESS,
+      abi: gyrobAbi,
+      functionName: "finalizeRoundEarly",
+      args: [room.roomId],
+      account: state.account,
+    });
+
+    const hash = await walletClient.writeContract(request);
+    updateStatus("Waiting for confirmation…", "success");
+    await publicClient.waitForTransactionReceipt({ hash });
+    updateStatus(`Round ${room.currentRound} finalized early!`, "success");
+    showToast("Round finalized", "success");
+    haptic([20, 40, 20]);
+    await refreshApp();
+    await syncTreasuryBalance();
+  } catch (error) {
+    updateStatus(parseError(error), "error");
+    showToast(parseError(error), "error");
+  } finally {
+    syncControls();
   }
 }
 
@@ -564,6 +870,13 @@ function syncControls() {
 
   approveBtn.disabled = !hasWallet || !hasRoom || !CONTRACT_ADDRESS;
   playBtn.disabled = !hasWallet || !hasRoom || !hasSpin || !CONTRACT_ADDRESS || !canAfford;
+
+  // Early-finalize is available once a room is selected with at least MIN_PLAYERS joined.
+  if (finalizeEarlyBtn) {
+    const canFinalizeEarly =
+      hasWallet && hasRoom && room.playerCount >= BigInt(MIN_PLAYERS) && CONTRACT_ADDRESS;
+    finalizeEarlyBtn.disabled = !canFinalizeEarly;
+  }
 
   if (hasRoom && hasSpin && hasWallet) setPlayStep("play");
   else if (hasRoom) setPlayStep(state.selectedSpin ? "play" : "spin");

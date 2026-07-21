@@ -107,7 +107,7 @@
     <section class="hero-card hero-card--play">
       <p class="eyebrow">Live Arena</p>
       <h1>Play for USDm</h1>
-      <p class="lead">Join a room, pick your spin, win 90% of the pot.</p>
+      <p class="lead">Spin to win USDm on Celo. Play the treasury vault or compete with other players.</p>
       <div class="wallet-strip">
         <article>
           <span>Balance</span>
@@ -117,13 +117,56 @@
           <span>Allowance</span>
           <strong id="allowanceValue">-</strong>
         </article>
+        <article>
+          <span>Treasury vault</span>
+          <strong id="treasuryBalanceValue">-</strong>
+        </article>
       </div>
+    </section>
+
+    <!-- Mode toggle: Treasury vs. Players -->
+    <nav class="mode-toggle" aria-label="Game mode">
+      <button class="mode-toggle__btn active" data-mode="treasury" type="button">
+        <span class="mode-toggle__icon">🏦</span>
+        <span class="mode-toggle__label">vs Treasury</span>
+        <span class="mode-toggle__sub">Win 70% of your stake</span>
+      </button>
+      <button class="mode-toggle__btn" data-mode="players" type="button">
+        <span class="mode-toggle__icon">👥</span>
+        <span class="mode-toggle__label">vs Players</span>
+        <span class="mode-toggle__sub">2–5 players, winner takes 90%</span>
+      </button>
+    </nav>
+
+    <!-- ===== TREASURY MODE PANEL ===== -->
+    <section id="treasuryPanel" class="game-panel mode-panel active">
+      <div class="panel-label">
+        <h2>Spin board — vs Treasury</h2>
+      </div>
+      <p class="hint">Pick a spin 1–10. The vault rolls its own spin on-chain. Win if your spin is strictly higher — you keep your stake plus 70% of it. Lose and the vault takes your stake.</p>
+      <div id="treasurySpinGrid" class="spin-grid spin-grid--glow" role="group" aria-label="Treasury spin values 1 to 10"></div>
+      <div class="treasury-stake-row">
+        <label for="treasuryStakeInput">Stake (USDm)</label>
+        <input id="treasuryStakeInput" class="treasury-stake-input" type="number" min="0.02" max="100" step="0.01" placeholder="0.02 – 100" inputmode="decimal" />
+      </div>
+      <div class="spin-selected">
+        <span>Your spin</span>
+        <strong id="treasurySelectedSpinLabel">None</strong>
+      </div>
+      <div class="action-row">
+        <button id="treasuryApproveBtn" class="btn btn-outline" type="button" disabled>Approve USDm</button>
+        <button id="treasuryPlayBtn" class="btn btn-play" type="button" disabled>
+          <span class="btn-icon">⚡</span> Spin vs Treasury
+        </button>
+      </div>
+      <div id="treasuryResult" class="treasury-result is-hidden" aria-live="polite"></div>
     </section>
 
     <p id="statusMessage" class="status-banner">Connect your wallet to play.</p>
     <button id="connectBtn" class="btn btn-outline btn-full" type="button">Connect wallet</button>
     <button id="sessionConnectBtn" class="btn btn-outline btn-full is-hidden" type="button">Connect wallet</button>
 
+    <section id="playersPanel" class="mode-panel">
     <nav class="play-steps" aria-label="Play flow">
       <button class="play-step active" data-step="rooms" type="button">
         <span class="play-step__num">1</span>
@@ -186,6 +229,10 @@
           <span class="btn-icon">⚡</span> Play
         </button>
       </div>
+      <div class="action-row action-row--secondary">
+        <button id="finalizeEarlyBtn" class="btn btn-ghost" type="button" disabled>Finalize round early</button>
+        <p class="hint">Available once 2+ players have joined and 5 minutes have passed.</p>
+      </div>
     </section>
 
     <section class="game-panel">
@@ -196,6 +243,7 @@
         <p class="empty">Select a room first.</p>
       </div>
     </section>
+    </section>
   </main>
 
   <!-- ===== RULES ===== -->
@@ -203,29 +251,29 @@
     <section class="hero-card">
       <p class="eyebrow">How to win</p>
       <h1>Game Rules</h1>
-      <p class="lead">10 players per round. Highest spin takes 90% of the pot.</p>
+      <p class="lead">Two ways to play: challenge the treasury vault, or compete with 2–5 players.</p>
     </section>
 
     <section class="game-panel rules-panel">
       <article class="rule-card">
-        <span class="rule-icon">🎯</span>
+        <span class="rule-icon">🏦</span>
         <div>
-          <h3>Pick 1–10</h3>
-          <p>Each player chooses a spin value. Higher wins the round.</p>
+          <h3>vs Treasury</h3>
+          <p>Pick a spin 1–10. The vault rolls its own spin on-chain. Win if your spin is strictly higher — you keep your stake plus 70% of it. Lose and the vault takes your full stake.</p>
         </div>
       </article>
       <article class="rule-card">
         <span class="rule-icon">👥</span>
         <div>
-          <h3>10-player rounds</h3>
-          <p>When the 10th player joins, the round auto-settles on-chain.</p>
+          <h3>vs Players (2–5)</h3>
+          <p>Join a room round with 2 to 5 players. The round auto-settles when the 5th player joins, or can be finalized early after 5 minutes with 2+ players.</p>
         </div>
       </article>
       <article class="rule-card">
         <span class="rule-icon">💰</span>
         <div>
           <h3>90 / 10 split</h3>
-          <p>Winners share 90% of the pot. Ties split equally. Creator gets 10%.</p>
+          <p>In player mode, the highest-spin winner(s) share 90% of the pot. Ties split equally. 10% goes to the treasury vault every round.</p>
         </div>
       </article>
       <article class="rule-card">

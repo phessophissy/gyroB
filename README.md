@@ -1,27 +1,39 @@
 # Gyro Board (GyroB)
 
-Gyro Board is a standalone game on Celo, designed for MiniPay as a Mini App. Players join USDm rooms, choose a spin from 1 to 10, and compete in deterministic 10-player rounds that settle automatically when the final seat is filled.
+Gyro Board is a standalone game on Celo, designed for MiniPay as a Mini App. Players spin numbers from 1 to 10 to win USDm (Mento Dollar) in two modes: challenge the in-game **treasury vault** solo, or compete against **2–5 other players** in PvP rooms.
 
 ## Game Overview
 
 - Chain: Celo Mainnet
 - Wallet experience: MiniPay-compatible Mini App flow
 - Token: Mento Dollar (`USDm`)
-- Room model: independent tiers keyed by `roomId`
-- Round size: 10 players
+- Two game modes: **vs Treasury** and **vs Players**
 - Spin range: integers from `1` to `10`
-- Payout split: `90%` to highest-spin winner(s), `10%` to the game creator
+- Treasury mode: win `70%` of your stake if your spin beats the vault's on-chain random spin; lose your full stake otherwise
+- PvP mode: `2–5` players per round; winner(s) take `90%` of the pot, `10%` goes to the treasury vault
+- Treasury vault: owner-funded via `depositTreasury()`, also augmented by the 10% PvP cut and losing treasury-mode stakes
 
 ## Rules
+
+### vs Treasury (solo)
+
+- Pick a spin `1`–`10` and a stake (0.02–100 USDm).
+- The contract derives a treasury spin from on-chain randomness (`prevrandao`).
+- If your spin is **strictly higher** than the treasury spin, you win: you keep your stake plus `70%` of it (paid from the treasury vault).
+- If your spin is less than or equal to the treasury spin, you lose your full stake to the vault.
+
+### vs Players (PvP)
 
 - Each room runs its own round state.
 - Every player pays the room entry fee in USDm.
 - Spins must be between `1` and `10`.
-- Each round accepts exactly `10` players.
-- One play per wallet per room round
+- Each round accepts `2` to `5` players.
+- One play per wallet per room round.
 - The highest spin wins the round.
 - If multiple players share the highest spin, they split the winner pool equally.
-- The 10th player triggers automatic round finalization.
+- The 5th player triggers automatic round finalization.
+- A round can also be finalized early by anyone once `2+` players have joined and `5 minutes` have elapsed.
+- Winners share `90%` of the pot; `10%` goes to the treasury vault.
 
 ## Project Structure
 
@@ -83,13 +95,29 @@ mapping(uint256 => mapping(uint256 => mapping(uint256 => Player))) public roundP
 
 ### Payout Formula
 
+**PvP mode** (per finalized round):
+
 ```solidity
-uint256 creatorAmount = room.totalPot * 10 / 100;
+uint256 treasuryAmount = room.totalPot * 10 / 100;   // credited to the vault
 uint256 winnerPool = room.totalPot * 90 / 100;
 uint256 payoutPerWinner = winnerPool / winnerCount;
 ```
 
-If `winnerCount == 0`, the contract reverts.
+**Treasury mode** (per solo spin):
+
+```solidity
+uint256 treasurySpin = (random % MAX_SPIN) + MIN_SPIN; // on-chain RNG
+if (playerSpin > treasurySpin) {
+    uint256 payout = stake * 70 / 100;   // paid from treasuryBalance
+    // player receives stake + payout
+} else {
+    treasuryBalance += stake;            // vault absorbs the stake
+}
+```
+
+If `winnerCount == 0` in PvP, the contract reverts. If the treasury vault has
+insufficient balance to cover a treasury-mode win, the call reverts with
+`InsufficientTreasury`.
 
 ## Setup
 

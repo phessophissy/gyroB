@@ -14,10 +14,10 @@ describe("GyroBoard round lifecycle", function () {
     );
 
     await board.createRoom(9, parse("2", 18));
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 5; i++) {
       await token.mint(players[i].address, parse("100", 18));
       await token.connect(players[i]).approve(await board.getAddress(), parse("2", 18));
-      await board.connect(players[i]).play(9, (i % 10) + 1);
+      await board.connect(players[i]).play(9, (i % 5) + 1);
     }
 
     const room = await board.rooms(9);
