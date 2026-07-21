@@ -21,3 +21,15 @@ test("formatUSDm rounds via toLocaleString maximumFractionDigits", () => {
 test("formatUSDm handles zero", () => {
   assert.equal(formatUSDm(0n), "0");
 });
+
+import { shorten } from "../frontend/js/format.js";
+
+test("shorten truncates a long hex address to first6…last4", () => {
+  const addr = "0x0123456789abcdef0123456789abcdef01234567";
+  assert.equal(shorten(addr), "0x0123…4567");
+});
+
+test("shorten handles a short string by slicing safely", () => {
+  // Shorter than 10 chars: slice still returns a result without throwing.
+  assert.equal(shorten("0xabc"), "0xabc…xabc");
+});
