@@ -33,3 +33,20 @@ test("shorten handles a short string by slicing safely", () => {
   // Shorter than 10 chars: slice still returns a result without throwing.
   assert.equal(shorten("0xabc"), "0xabc…xabc");
 });
+
+import { parseError } from "../frontend/js/format.js";
+
+test("parseError prefers shortMessage", () => {
+  const err = { shortMessage: "short", message: "long" };
+  assert.equal(parseError(err), "short");
+});
+
+test("parseError falls back to message", () => {
+  const err = { message: "long message" };
+  assert.equal(parseError(err), "long message");
+});
+
+test("parseError returns default when no info present", () => {
+  assert.equal(parseError(undefined), "Transaction failed.");
+  assert.equal(parseError({}), "Transaction failed.");
+});
