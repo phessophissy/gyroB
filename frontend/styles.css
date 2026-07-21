@@ -178,6 +178,30 @@ button { border: 0; cursor: pointer; background: none; }
   background: var(--green);
   box-shadow: 0 0 8px var(--green);
 }
+
+.sound-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.12));
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+.sound-toggle:hover { background: rgba(255, 255, 255, 0.06); }
+.sound-toggle[aria-pressed="false"] { opacity: 0.45; }
+.sound-toggle[aria-pressed="false"] .sound-toggle-icon::before { content: "🔇"; }
+.sound-toggle[aria-pressed="false"] .sound-toggle-icon { font-size: 0; }
+.sound-toggle[aria-pressed="false"] .sound-toggle-icon::after {
+  content: "🔇";
+  font-size: 16px;
+}
 #walletAddress {
   overflow: hidden;
   text-overflow: ellipsis;
