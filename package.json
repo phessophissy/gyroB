@@ -19,6 +19,8 @@
     "deploy:vercel": "vercel --prod",
     "test:contracts": "hardhat test test/GyroBoard*.t.js",
     "test:format": "node --import ./test/stubs/viem-loader.js --test test/format-helpers.test.js",
+    "lint": "eslint frontend scripts test eslint.config.js",
+    "lint:fix": "eslint --fix frontend scripts test eslint.config.js",
     "build:check": "npm run build"
   },
   "keywords": [
