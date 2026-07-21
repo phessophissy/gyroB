@@ -42,6 +42,8 @@ const state = {
   walletConnectProvider: null,
   isConnecting: false,
   playStep: "rooms",
+  balance: null,
+  allowance: null,
 };
 
 const walletConnectProviders = new WeakSet();
@@ -347,6 +349,8 @@ async function refreshApp() {
 
 async function syncAccountState() {
   if (!state.account || !state.selectedRoomId) {
+    state.balance = null;
+    state.allowance = null;
     walletBalance.textContent = "-";
     allowanceValue.textContent = "-";
     return;
@@ -367,8 +371,11 @@ async function syncAccountState() {
     }),
   ]);
 
+  state.balance = balance;
+  state.allowance = allowance;
   walletBalance.textContent = `${formatUSDm(balance)} USDm`;
   allowanceValue.textContent = `${formatUSDm(allowance)} USDm`;
+  syncControls();
 }
 
 async function renderSelectedRoom() {
@@ -496,6 +503,18 @@ async function playRoom() {
   const room = getSelectedRoom();
   if (!room || !state.account || !state.selectedSpin) return;
 
+  const check = validatePlay({
+    spin: state.selectedSpin,
+    entryFee: room.entryFee,
+    balance: state.balance ?? 0n,
+    allowance: state.allowance ?? 0n,
+  });
+  if (!check.ok) {
+    updateStatus(check.error, "error");
+    showToast(check.error, "error");
+    return;
+  }
+
   try {
     playBtn.disabled = true;
     playSpin();
@@ -532,11 +551,19 @@ async function playRoom() {
 
 function syncControls() {
   const hasWallet = Boolean(state.account);
-  const hasRoom = Boolean(getSelectedRoom());
+  const room = getSelectedRoom();
+  const hasRoom = Boolean(room);
   const hasSpin = Boolean(state.selectedSpin);
 
+  const canAfford =
+    hasWallet &&
+    hasRoom &&
+    state.balance != null &&
+    state.allowance != null &&
+    validateAffordability(room.entryFee, state.balance, state.allowance).ok;
+
   approveBtn.disabled = !hasWallet || !hasRoom || !CONTRACT_ADDRESS;
-  playBtn.disabled = !hasWallet || !hasRoom || !hasSpin || !CONTRACT_ADDRESS;
+  playBtn.disabled = !hasWallet || !hasRoom || !hasSpin || !CONTRACT_ADDRESS || !canAfford;
 
   if (hasRoom && hasSpin && hasWallet) setPlayStep("play");
   else if (hasRoom) setPlayStep(state.selectedSpin ? "play" : "spin");
