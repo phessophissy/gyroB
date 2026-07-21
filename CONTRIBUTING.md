@@ -25,10 +25,15 @@ npm run dev
 4. Run the core checks before opening a PR:
 
 ```bash
+npm run lint
 npm run compile
 npm test
 npm run build
 ```
+
+The `lint` script runs ESLint (flat config in `eslint.config.js`) over
+the frontend, scripts, and test directories. CI enforces it on every
+push and pull request.
 
 ## Project Standards
 
