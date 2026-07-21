@@ -9,6 +9,14 @@ import {
   WALLETCONNECT_PROJECT_ID,
 } from "./js/config.js";
 import { formatUSDm, parseError, shorten } from "./js/format.js";
+import {
+  isSoundEnabled,
+  toggleSound,
+  playClick,
+  playSpin,
+  playWin,
+  playLose,
+} from "./js/sound.js";
 import { roomListSkeleton, setLoading } from "./js/loading.js";
 import { isMiniPayEnvironment, shareMiniPayResult } from "./js/minipay.js";
 import {
@@ -89,8 +97,20 @@ initNavigation();
 initPractice();
 initAccessibility();
 
+function initSoundToggle() {
+  const btn = document.getElementById("soundToggle");
+  if (!btn) return;
+  btn.setAttribute("aria-pressed", String(isSoundEnabled()));
+  btn.addEventListener("click", () => {
+    const enabled = toggleSound();
+    btn.setAttribute("aria-pressed", String(enabled));
+    if (enabled) playClick();
+  });
+}
+
 function init() {
   buildSpinGrid();
+  initSoundToggle();
   for (const button of connectButtons) {
     button.addEventListener("click", connectWallet);
   }
@@ -478,6 +498,7 @@ async function playRoom() {
 
   try {
     playBtn.disabled = true;
+    playSpin();
     updateStatus(`Submitting spin ${state.selectedSpin}…`, "success");
     const walletClient = await getWalletClient();
     const { request } = await publicClient.simulateContract({
@@ -493,6 +514,7 @@ async function playRoom() {
     await publicClient.waitForTransactionReceipt({ hash });
     updateStatus(`Spin ${state.selectedSpin} confirmed in ${getRoomTier(room.roomId).label} room!`, "success");
     showToast(`Spin ${state.selectedSpin} played!`, "success");
+    playWin();
     haptic([20, 40, 20]);
     state.selectedSpin = null;
     selectedSpinLabel.textContent = "None";
@@ -501,6 +523,7 @@ async function playRoom() {
     setPlayStep("rooms");
   } catch (error) {
     updateStatus(parseError(error), "error");
+    playLose();
     showToast(parseError(error), "error");
   } finally {
     syncControls();
@@ -763,14 +786,17 @@ function finishPracticeSpin() {
   if (practiceSelectedSpin > computerSpin) {
     outcome = { text: "You win!", cls: "win" };
     practiceStreakCount += 1;
+    playWin();
     haptic([15, 30, 15]);
   } else if (practiceSelectedSpin < computerSpin) {
     outcome = { text: "CPU wins!", cls: "lose" };
     practiceStreakCount = 0;
+    playLose();
     haptic(10);
   } else {
     outcome = { text: "It's a tie!", cls: "tie" };
     practiceStreakCount = 0;
+    playClick();
     haptic(12);
   }
 
