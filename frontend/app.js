@@ -9,7 +9,7 @@ import {
   WALLETCONNECT_PROJECT_ID,
 } from "./js/config.js";
 import { formatUSDm, parseError, shorten } from "./js/format.js";
-import { validateAffordability } from "./js/validation.js";
+import { validateAffordability, validatePlay } from "./js/validation.js";
 import { roomListSkeleton, setLoading } from "./js/loading.js";
 import { isMiniPayEnvironment, shareMiniPayResult } from "./js/minipay.js";
 import {
@@ -483,6 +483,18 @@ async function approveRoom() {
 async function playRoom() {
   const room = getSelectedRoom();
   if (!room || !state.account || !state.selectedSpin) return;
+
+  const check = validatePlay({
+    spin: state.selectedSpin,
+    entryFee: room.entryFee,
+    balance: state.balance ?? 0n,
+    allowance: state.allowance ?? 0n,
+  });
+  if (!check.ok) {
+    updateStatus(check.error, "error");
+    showToast(check.error, "error");
+    return;
+  }
 
   try {
     playBtn.disabled = true;
