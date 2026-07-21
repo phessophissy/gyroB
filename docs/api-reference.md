@@ -88,3 +88,49 @@ Emitted when a round auto-finalizes after the tenth player.
 
 #### `Payout(address indexed recipient, uint256 amount, uint256 roomId)`
 Emitted for each payout transfer (winners and creator).
+
+### Functions
+
+#### `constructor(address usdMToken, address creatorAddress)`
+
+Initializes the game with the USDm token and creator payout address.
+Reverts if either address is `address(0)`.
+
+#### `createRoom(uint256 roomId, uint256 entryFee) external`
+
+Creates a new game room with a fixed entry fee. The room ID is
+caller-chosen and must be unique. The entry fee must be within
+`[MIN_ENTRY_FEE, MAX_ENTRY_FEE]`. The room starts at round 1.
+
+| Reverts | Condition |
+|---------|-----------|
+| `RoomAlreadyExists()` | `rooms[roomId].exists` is true. |
+| `InvalidEntryFee()` | Fee outside the allowed range. |
+
+Emits `RoomCreated`.
+
+#### `play(uint256 roomId, uint256 spin) external nonReentrant`
+
+Submit a spin to an active room for the current round. Transfers the
+entry fee from the caller via `safeTransferFrom`, records the spin,
+and auto-finalizes the round when the tenth player joins.
+
+| Reverts | Condition |
+|---------|-----------|
+| `RoomDoesNotExist()` | Room has not been created. |
+| `RoundFull()` | `playerCount >= MAX_PLAYERS`. |
+| `InvalidSpin()` | Spin outside `[MIN_SPIN, MAX_SPIN]`. |
+| `AlreadyPlayed()` | Caller already joined this round. |
+
+Emits `Played`, and `RoundCompleted` + `Payout`(s) on finalization.
+
+#### `getRoomIds() external view returns (uint256[] memory)`
+
+Returns the list of all room IDs that have been created.
+
+#### `getRoundPlayers(uint256 roomId, uint256 round) external view returns (Player[] memory players)`
+
+Returns the player list for a specific round. For the current
+(in-progress) round only `playerCount` entries are returned; for
+completed rounds all `MAX_PLAYERS` entries are returned. Reverts with
+`RoomDoesNotExist()` if the room does not exist.
