@@ -1,4 +1,5 @@
-import { ethers } from "hardhat";
+import hre from "hardhat";
+const { ethers } = hre;
 
 import { USDM_MAINNET } from "./lib/addresses.js";
 const DEFAULT_ROOMS = [
