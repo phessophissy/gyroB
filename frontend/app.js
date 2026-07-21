@@ -9,6 +9,7 @@ import {
   WALLETCONNECT_PROJECT_ID,
 } from "./js/config.js";
 import { formatUSDm, parseError, shorten } from "./js/format.js";
+import { isSoundEnabled, toggleSound, playClick } from "./js/sound.js";
 import { roomListSkeleton, setLoading } from "./js/loading.js";
 import { isMiniPayEnvironment, shareMiniPayResult } from "./js/minipay.js";
 import {
@@ -89,8 +90,20 @@ initNavigation();
 initPractice();
 initAccessibility();
 
+function initSoundToggle() {
+  const btn = document.getElementById("soundToggle");
+  if (!btn) return;
+  btn.setAttribute("aria-pressed", String(isSoundEnabled()));
+  btn.addEventListener("click", () => {
+    const enabled = toggleSound();
+    btn.setAttribute("aria-pressed", String(enabled));
+    if (enabled) playClick();
+  });
+}
+
 function init() {
   buildSpinGrid();
+  initSoundToggle();
   for (const button of connectButtons) {
     button.addEventListener("click", connectWallet);
   }
