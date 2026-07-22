@@ -73,6 +73,7 @@ const walletBalance = document.getElementById("walletBalance");
 const allowanceValue = document.getElementById("allowanceValue");
 const walletPill = document.getElementById("walletPill");
 const walletDot = document.getElementById("walletDot");
+const walletAction = document.getElementById("walletAction");
 const minipayBadge = document.getElementById("minipayBadge");
 const toastContainer = document.getElementById("toastContainer");
 const roundProgress = document.getElementById("roundProgress");
@@ -145,7 +146,8 @@ function init() {
     button.addEventListener("click", connectWallet);
   }
   walletPill?.addEventListener("click", () => {
-    if (!state.account) connectWallet();
+    if (state.account) disconnectWallet();
+    else connectWallet();
   });
   refreshBtn.addEventListener("click", () => {
     haptic(10);
@@ -267,6 +269,12 @@ function capitalize(str) {
 
 function setWalletConnected(connected) {
   walletPill?.classList.toggle("connected", connected);
+  walletPill?.setAttribute("aria-label", connected ? "Disconnect wallet" : "Connect wallet");
+  walletPill?.setAttribute("title", connected ? "Click to disconnect" : "Click to connect");
+  if (walletAction) {
+    walletAction.classList.toggle("is-hidden", !connected);
+    walletAction.setAttribute("aria-hidden", String(!connected));
+  }
 }
 
 /* ===== WALLET ===== */
@@ -290,6 +298,9 @@ async function connectWallet(options = {}) {
     bindProviderEvents(activeProvider);
 
     walletAddress.textContent = shorten(account);
+    walletAddress.dataset.fullAddress = account;
+    walletAddress.dataset.shortAddress = shorten(account);
+    walletAddress.title = "Click to disconnect";
     setWalletConnected(true);
 
     if (type === "minipay") {
@@ -324,6 +335,43 @@ async function connectWallet(options = {}) {
   } finally {
     state.isConnecting = false;
   }
+}
+
+async function disconnectWallet() {
+  const provider = state.provider;
+  const type = state.providerType;
+
+  // Best-effort provider-side disconnect (WalletConnect supports this; injected wallets
+  // typically don't expose a disconnect method, so we just clear local state).
+  try {
+    if (type === "walletconnect" && provider?.disconnect) {
+      await provider.disconnect();
+    }
+  } catch (error) {
+    console.warn("[GyroB] Provider disconnect failed:", error);
+  }
+
+  state.account = null;
+  state.provider = null;
+  state.providerType = null;
+  state.walletConnectProvider = null;
+  state.balance = null;
+  state.allowance = null;
+
+  walletAddress.textContent = "Connect";
+  setWalletConnected(false);
+  walletBalance.textContent = "-";
+  allowanceValue.textContent = "-";
+
+  showConnectButtons();
+  if (isMiniPayEnvironment()) setConnectButtonLabel("Retry MiniPay");
+  else if (WALLETCONNECT_PROJECT_ID) setConnectButtonLabel("Connect with WalletConnect");
+  else setConnectButtonLabel("Connect wallet");
+
+  updateStatus("Wallet disconnected.", "error");
+  showToast("Wallet disconnected", "error");
+  haptic(10);
+  await refreshApp();
 }
 
 async function initConnection() {
@@ -920,7 +968,13 @@ function bindProviderEvents(provider) {
 
   provider.on("accountsChanged", async (accounts) => {
     state.account = accounts?.[0] || null;
-    walletAddress.textContent = state.account ? shorten(state.account) : "Connect";
+    if (state.account) {
+      walletAddress.textContent = shorten(state.account);
+      walletAddress.title = "Click to disconnect";
+    } else {
+      walletAddress.textContent = "Connect";
+      walletAddress.title = "Click to connect";
+    }
     setWalletConnected(Boolean(state.account));
     if (!state.account) {
       walletBalance.textContent = "-";

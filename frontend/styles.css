@@ -178,6 +178,36 @@ button { border: 0; cursor: pointer; background: none; }
   background: var(--green);
   box-shadow: 0 0 8px var(--green);
 }
+.wallet-action {
+  margin-left: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 99, 99, 0.12);
+  color: #ff6b6b;
+  border: 1px solid rgba(255, 99, 99, 0.35);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.wallet-pill.connected:hover .wallet-action {
+  background: rgba(255, 99, 99, 0.22);
+  color: #ff8a8a;
+}
+.wallet-pill.connected {
+  cursor: pointer;
+}
+.wallet-pill.connected:hover {
+  border-color: rgba(255, 99, 99, 0.5);
+}
+.wallet-pill.connected:hover .wallet-dot {
+  background: #ff6b6b;
+  box-shadow: 0 0 8px #ff6b6b;
+}
+.wallet-pill.connected:hover #walletAddress {
+  color: #ff8a8a;
+}
 
 .sound-toggle {
   display: inline-flex;
