@@ -1,8 +1,15 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- frontend/ package.json vercel.json vite.config.js",`n  "installCommand": "npm ci",
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- frontend/ package.json vercel.json vite.config.js",
+  "installCommand": "npm ci",
   "framework": "vite",
+  "build": {
+    "env": {
+      "VITE_GYROB_CONTRACT_ADDRESS": "0xB77b073E10C6E3d22B1834ee09b0bB96E3f3B396",
+      "VITE_CELO_RPC_URL": "https://forno.celo.org"
+    }
+  },
   "rewrites": [
     { "source": "/((?!assets/|favicon|apple-touch|site.webmanifest).*)", "destination": "/index.html" }
   ]
