@@ -22,6 +22,22 @@ test("formatUSDm handles zero", () => {
   assert.equal(formatUSDm(0n), "0");
 });
 
+test("formatUSDm coerces Number inputs to BigInt (RPC uint256 fallback)", () => {
+  // Some RPC providers return uint256 values as plain Numbers instead of BigInt.
+  // Without coercion, viem's formatUnits() returns a malformed string like
+  // "1..51920892373162e+22" which Number() then renders as the raw wei value
+  // with commas (e.g. "15,192,089,237,316,200,000,000"). The fix coerces to
+  // BigInt first so the decimal conversion is always correct.
+  const rawNumber = 15192089237316200000000; // 15,192.0892373162 USDm in wei
+  const rawBigInt = 15192089237316200000000n;
+  assert.equal(formatUSDm(rawNumber), formatUSDm(rawBigInt));
+  assert.equal(formatUSDm(rawNumber), "15,192.09");
+});
+
+test("formatUSDm coerces String inputs to BigInt", () => {
+  assert.equal(formatUSDm("15192089237316200000000"), "15,192.09");
+});
+
 import { shorten } from "../frontend/js/format.js";
 
 test("shorten truncates a long hex address to first6…last4", () => {
